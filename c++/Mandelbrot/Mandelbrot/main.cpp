@@ -41,8 +41,11 @@ namespace mb {
     typedef std::pair<int, int> ImageCoord;
     constexpr std::size_t WIDTH = 2000;
     constexpr std::size_t HEIGHT = 2000;
-    typedef std::array<Color, WIDTH> Row;
-    typedef std::array<Row, HEIGHT> Image;
+    typedef std::array<Color, HEIGHT * WIDTH> Image;
+    Color& getPixel(Image& img, std::size_t x, std::size_t y)
+    {
+        return img[y * WIDTH + x];
+    }
 
     typedef std::complex<double> Complex;
 
@@ -70,9 +73,9 @@ namespace mb {
 
     void computeImage(Image& img, std::size_t maxIterations, ComplexRange const& range)
     {
-        for (std::size_t x = 0; x < img.size(); ++x) {
-            for (std::size_t y = 0; y < img[x].size(); ++y) {
-                img[x][y] = computeElement({x, y}, maxIterations, range);
+        for (std::size_t x = 0; x < WIDTH; ++x) {
+            for (std::size_t y = 0; y < HEIGHT; ++y) {
+                getPixel(img, x, y) = computeElement({x, y}, maxIterations, range);
             }
         }
     }
@@ -86,11 +89,10 @@ std::ostream& operator<<(std::ostream& out, sf::Time const& t)
 
 int main(int argc, const char * argv[])
 {
+    sf::Clock clk;
     mb::Image img;
     std::size_t iterations = 1000;
     mb::ComplexRange range = { mb::Complex(-1.72, 1.2), mb::Complex(1.0, -1.2) };
-
-    sf::Clock clk;
     mb::computeImage(img, iterations, range);
     auto const time = clk.restart();
 
@@ -98,9 +100,9 @@ int main(int argc, const char * argv[])
 
     sf::Image png; png.create(mb::WIDTH, mb::HEIGHT, sf::Color::White);
 
-    for (std::size_t x = 0; x < img.size(); ++x) {
-        for (std::size_t y = 0; y < img[x].size(); ++y) {
-            if (img[x][y] == mb::inSetColor) png.setPixel(x, y, sf::Color::Black);
+    for (std::size_t x = 0; x < mb::WIDTH; ++x) {
+        for (std::size_t y = 0; y < mb::HEIGHT; ++y) {
+            if (mb::getPixel(img, x, y) == mb::inSetColor) png.setPixel(x, y, sf::Color::Black);
         }
     }
 
