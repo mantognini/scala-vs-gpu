@@ -105,7 +105,7 @@ int main(int argc, const char * argv[])
     }
 
     
-    png.saveToFile("/Users/m/Desktop/fractal.png");
+    png.saveToFile("fractal.png");
 
 //    for (auto& row : img) {
 //        for (auto& color : row) {
