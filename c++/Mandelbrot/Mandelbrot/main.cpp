@@ -104,15 +104,7 @@ int main(int argc, const char * argv[])
         }
     }
 
-    
     png.saveToFile("fractal.png");
-
-//    for (auto& row : img) {
-//        for (auto& color : row) {
-//            std::cout << (color ? 'x' : '-') << ' ';
-//        }
-//        std::cout << "\n";
-//    }
 
     return 0;
 }
