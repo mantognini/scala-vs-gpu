@@ -1,0 +1,238 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0C229C4717030063003AF5B2 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0C229C4617030063003AF5B2 /* main.cpp */; };
+		0C229C4917030063003AF5B2 /* Mandelbrot.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0C229C4817030063003AF5B2 /* Mandelbrot.1 */; };
+		0C229C5117033BD5003AF5B2 /* sfml-graphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C229C4F17033BD5003AF5B2 /* sfml-graphics.framework */; };
+		0C229C5217033BD5003AF5B2 /* sfml-window.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C229C5017033BD5003AF5B2 /* sfml-window.framework */; };
+		0C229C56170342D0003AF5B2 /* sfml-system.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C229C55170342D0003AF5B2 /* sfml-system.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0C229C4117030063003AF5B2 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				0C229C4917030063003AF5B2 /* Mandelbrot.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0C229C4317030063003AF5B2 /* Mandelbrot */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Mandelbrot; sourceTree = BUILT_PRODUCTS_DIR; };
+		0C229C4617030063003AF5B2 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		0C229C4817030063003AF5B2 /* Mandelbrot.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Mandelbrot.1; sourceTree = "<group>"; };
+		0C229C4F17033BD5003AF5B2 /* sfml-graphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-graphics.framework"; path = "../../../../../../../../../../Library/Frameworks/sfml-graphics.framework"; sourceTree = "<group>"; };
+		0C229C5017033BD5003AF5B2 /* sfml-window.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-window.framework"; path = "../../../../../../../../../../Library/Frameworks/sfml-window.framework"; sourceTree = "<group>"; };
+		0C229C55170342D0003AF5B2 /* sfml-system.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = "sfml-system.framework"; path = "../../../../../../../../../../Library/Frameworks/sfml-system.framework"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0C229C4017030063003AF5B2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0C229C56170342D0003AF5B2 /* sfml-system.framework in Frameworks */,
+				0C229C5117033BD5003AF5B2 /* sfml-graphics.framework in Frameworks */,
+				0C229C5217033BD5003AF5B2 /* sfml-window.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0C229C3A17030063003AF5B2 = {
+			isa = PBXGroup;
+			children = (
+				0C229C55170342D0003AF5B2 /* sfml-system.framework */,
+				0C229C4F17033BD5003AF5B2 /* sfml-graphics.framework */,
+				0C229C5017033BD5003AF5B2 /* sfml-window.framework */,
+				0C229C4517030063003AF5B2 /* Mandelbrot */,
+				0C229C4417030063003AF5B2 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0C229C4417030063003AF5B2 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0C229C4317030063003AF5B2 /* Mandelbrot */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0C229C4517030063003AF5B2 /* Mandelbrot */ = {
+			isa = PBXGroup;
+			children = (
+				0C229C4617030063003AF5B2 /* main.cpp */,
+				0C229C4817030063003AF5B2 /* Mandelbrot.1 */,
+			);
+			path = Mandelbrot;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0C229C4217030063003AF5B2 /* Mandelbrot */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0C229C4C17030063003AF5B2 /* Build configuration list for PBXNativeTarget "Mandelbrot" */;
+			buildPhases = (
+				0C229C3F17030063003AF5B2 /* Sources */,
+				0C229C4017030063003AF5B2 /* Frameworks */,
+				0C229C4117030063003AF5B2 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Mandelbrot;
+			productName = Mandelbrot;
+			productReference = 0C229C4317030063003AF5B2 /* Mandelbrot */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0C229C3B17030063003AF5B2 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+				ORGANIZATIONNAME = local;
+			};
+			buildConfigurationList = 0C229C3E17030063003AF5B2 /* Build configuration list for PBXProject "Mandelbrot" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0C229C3A17030063003AF5B2;
+			productRefGroup = 0C229C4417030063003AF5B2 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0C229C4217030063003AF5B2 /* Mandelbrot */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0C229C3F17030063003AF5B2 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0C229C4717030063003AF5B2 /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0C229C4A17030063003AF5B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks/;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0C229C4B17030063003AF5B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks/;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LIBRARY_SEARCH_PATHS = "";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		0C229C4D17030063003AF5B2 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0C229C4E17030063003AF5B2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0C229C3E17030063003AF5B2 /* Build configuration list for PBXProject "Mandelbrot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C229C4A17030063003AF5B2 /* Debug */,
+				0C229C4B17030063003AF5B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0C229C4C17030063003AF5B2 /* Build configuration list for PBXNativeTarget "Mandelbrot" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0C229C4D17030063003AF5B2 /* Debug */,
+				0C229C4E17030063003AF5B2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0C229C3B17030063003AF5B2 /* Project object */;
+}
