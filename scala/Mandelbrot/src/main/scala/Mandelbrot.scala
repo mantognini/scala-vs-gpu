@@ -25,7 +25,7 @@ case class Mandelbrot(val width: Int, val height: Int,
 
 		val c = Complex(
 			range.first.r + x / (width - 1.0) * (range.second.r - range.first.r),
-			range.first.i + x / (height - 1.0) * (range.second.i - range.first.i)
+			range.first.i + y / (height - 1.0) * (range.second.i - range.first.i)
 		)
 
 		var z = Complex(0, 0)
@@ -49,8 +49,8 @@ object Mandelbrot {
   		val HEIGHT = 2000
   		val iterations = 1000
   		val range = ComplexRange(Complex(-1.72, 1.2), Complex(1.0, -1.2))
-  		val inSet = Color(0xffffff)
-  		val notInSet = Color(0x000000)
+  		val inSet = Color(0x000000)
+  		val notInSet = Color(0xffffff)
 
   		val indexes = 0 until (HEIGHT * WIDTH)
 
