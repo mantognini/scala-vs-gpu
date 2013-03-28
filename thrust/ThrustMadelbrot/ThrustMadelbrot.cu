@@ -45,8 +45,15 @@ struct Mandelbrot : public thrust::unary_function<Index, Color> {
     }
 };
 
+std::ostream& operator<<(std::ostream& out, sf::Time const& t)
+{
+    sf::Int64 micros = t.asMicroseconds();
+    return out << micros << "µs";
+}
+
 int main(int argc, char** argv)
 {
+    sf::Clock clk;
     const std::size_t WIDTH = 2000;
     const std::size_t HEIGHT = 2000;
     const Color inSet = 0xffffff;
@@ -67,6 +74,10 @@ int main(int argc, char** argv)
 
 	// Copy the data to the host memory
     thrust::host_vector<Color> img(deviceImg.begin(), deviceImg.end());
+
+    const sf::Time time = clk.restart();
+
+    std::cout << "fractal computed in " << time << std::endl;
 
     // Export it to png
     sf::Image png; png.create(WIDTH, HEIGHT, sf::Color::White);
