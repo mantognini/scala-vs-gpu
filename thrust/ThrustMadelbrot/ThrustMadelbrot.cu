@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 
     // Then, transform the indexes into 'colors'
     thrust::transform(deviceImg.begin(), deviceImg.end(),
-                      deviceImg.end(),
+                      deviceImg.begin(),
                       Mandelbrot(WIDTH, HEIGHT, inSet, notInSet, range, iterations));
 
 	// Copy the data to the host memory
