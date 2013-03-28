@@ -31,7 +31,7 @@ struct Mandelbrot : public thrust::unary_function<Index, Color> {
 
         Complex c(
             range.first.real() + x / (width - 1.0) * (range.second.real() - range.first.real()),
-            range.first.imag() + y / (width - 1.0) * (range.second.imag() - range.first.imag())
+            range.first.imag() + y / (height - 1.0) * (range.second.imag() - range.first.imag())
         );
 
         Complex z( 0, 0 );

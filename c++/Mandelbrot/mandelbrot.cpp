@@ -35,7 +35,7 @@ namespace mb {
     {
         Complex c {
             range.first.real() + coord.first / (WIDTH - 1.0) * (range.second.real() - range.first.real()),
-            range.first.imag() + coord.second / (WIDTH - 1.0) * (range.second.imag() - range.first.imag())
+            range.first.imag() + coord.second / (HEIGHT - 1.0) * (range.second.imag() - range.first.imag())
         };
 
         Complex z = { 0, 0 };
