@@ -47,9 +47,8 @@ struct Mandelbrot : public thrust::unary_function<Index, Color> {
 
 int main(int argc, char** argv)
 {
-	// TODO use higher values
-    const std::size_t WIDTH = 100;
-    const std::size_t HEIGHT = 100;
+    const std::size_t WIDTH = 2000;
+    const std::size_t HEIGHT = 2000;
     const Color inSet = 0xffffff;
     const Color notInSet = 0x000000;
     const ComplexRange range ( Complex(-1.72, 1.2), Complex(1.0, -1.2) );
