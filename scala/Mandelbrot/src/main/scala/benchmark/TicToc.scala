@@ -48,7 +48,7 @@ trait TicToc {
    * the same measurement multiple times), else the file is created.
    * @param path The path of the file to write the times log.
    */
-  def writeTimesLog(path: String) {
+  def writeTimesLog(path: String = "results/benchmark.txt") {
     var linesToPrint = outLines
     try {
       // Check if the file was alreay created, if yes only 
@@ -66,15 +66,6 @@ trait TicToc {
     val fw = new FileWriter(path, true);
     linesToPrint.foreach { l => fw.write(l + "\n"); }
     fw.close()
-  }
-  
-  def writeTimesLog() {
-    val folder = "benchmark"
-    val fileName = this.getClass().toString.replace('.', '-') + ".txt"
-    
-    val completePath = folder + File.separator + fileName
-    
-    writeTimesLog(completePath)
   }
 
   /**
