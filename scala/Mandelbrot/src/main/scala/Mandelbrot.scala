@@ -13,12 +13,10 @@ case class Complex(val r: Double, val i: Double) {
 	def abs: Double = sqrt(r * r + i * i)
 
 	override def toString(): String = "(" + r + ", " + i + ")"
-	
 }
 
 case class ComplexRange(val first: Complex, val second: Complex) {
-	override def toString(): String =  "{ " + first + ", " + second + " }" 
-	
+	override def toString(): String =  "{ " + first + ", " + second + " }" 	
 }
 
 case class Color(val rgb: Int)
