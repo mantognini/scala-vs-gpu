@@ -60,7 +60,7 @@ trait TicToc {
       }
       lr.close()
     } catch {
-      case _ =>
+      case _: Throwable =>
     }
     // Write the timings and or timing information.
     val fw = new FileWriter(path, true);
