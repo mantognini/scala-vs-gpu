@@ -2,6 +2,7 @@ import scala.math.{ sqrt }
 import java.awt.image.{ BufferedImage }
 import java.io.{ File }
 import javax.imageio.{ ImageIO }
+import benchmark.{ TicToc }
 
 // Minimal complex class for this application
 case class Complex(val r: Double, val i: Double) {
@@ -10,9 +11,15 @@ case class Complex(val r: Double, val i: Double) {
 	def +(z: Complex) = Complex(r + z.r, i + z.i)
 
 	def abs: Double = sqrt(r * r + i * i)
+
+	override def toString(): String = "(" + r + ", " + i + ")"
+	
 }
 
-case class ComplexRange(val first: Complex, val second: Complex)
+case class ComplexRange(val first: Complex, val second: Complex) {
+	override def toString(): String =  "{ " + first + ", " + second + " }" 
+	
+}
 
 case class Color(val rgb: Int)
 
@@ -41,10 +48,12 @@ case class Mandelbrot(val width: Int, val height: Int,
 	}
 }
 
-object Mandelbrot {
+object Mandelbrot extends TicToc {
 
 	def main(args: Array[String]): Unit = {
-		// TODO Add clock tic here
+		// Start timer
+		tic
+
   		val WIDTH = 2000
   		val HEIGHT = 2000
   		val iterations = 1000
@@ -56,7 +65,9 @@ object Mandelbrot {
 
   		val generator = Mandelbrot(WIDTH, HEIGHT, range, iterations, inSet, notInSet)
   		val img = indexes map generator.computeElement
-  		// TODO Add clock toc here
+  		
+  		toc("Scala Mandelbrot Sequencial, " + WIDTH + 'x' + HEIGHT + ", " + range)
+  		writeTimesLog()
 
   		val png = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB)
   		for((index, color)  <- indexes zip img) {
@@ -66,7 +77,7 @@ object Mandelbrot {
 			png.setRGB(x, y, color.rgb)
   		}
 
-  		val outputfile = new File("fractal.png");
+  		val outputfile = new File("results/fractal.png");
     	ImageIO.write(png, "png", outputfile);
 	}
 }
