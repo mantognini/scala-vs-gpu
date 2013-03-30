@@ -1,11 +1,3 @@
-//
-//  main.cpp
-//  Mandelbrot
-//
-//  Created by Marco Antognini on 27/3/13.
-//  Copyright (c) 2013 local. All rights reserved.
-//
-
 #include <iostream>
 #include <utility>
 #include <array>
