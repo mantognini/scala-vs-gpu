@@ -1,76 +1,69 @@
-#include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/random.h>
 #include <thrust/count.h>
-#include <utility>
 #include <ctime>
 #include <cstdlib>
 #include <SFML/System.hpp>
 
-std::ostream& operator<<(std::ostream& out, sf::Time const& t);
-
 namespace mc {
     typedef double Real;
-    struct Point {
-        Real x, y;
-
-        __host__ __device__
-        Point(Real x, Real y)
-        : x(x)
-        , y(y)
-        { /* That's it */ }
-
-        __host__ __device__
-        Point()
-        : x(0)
-        , y(0)
-        { /* That's it */ }
-
-        friend std::ostream& operator<<(std::ostream& out, Point const& p) {
-            return out << "(" << p.x << "; " << p.y << ")";
-        }
-    };
+    typedef thrust::pair<Real, Real> Point;
+    // typedef thrust::host_vector<Point> Points;
+    typedef thrust::device_vector<Point> Points;
     typedef thrust::random::uniform_real_distribution<Real> RealDistribution;
     typedef thrust::random::default_random_engine RandomEngine;
 
-    struct RandomPointGenerator {
-        // Define two random number generators 
-        RandomEngine algoX, algoY;
-        RealDistribution dist;
+    std::ostream& operator<<(std::ostream& out, Point const& p)
+    {
+        return out << "(" << p.first << "; " << p.second << ")";
+    }
 
-        RandomPointGenerator()
-        : algoX(std::rand())
-        , algoY(std::rand())
-        , dist(0, 1)
+    std::ostream& operator<<(std::ostream& out, sf::Time const& t)
+    {
+        sf::Int64 micros = t.asMicroseconds();
+        return out << micros << "µs";
+    }
+    
+    struct RandomPointGenerator {
+        unsigned int seedX, seedY;
+
+        RandomPointGenerator(unsigned int seedX, unsigned int seedY)
+        : seedX(seedX)
+        , seedY(seedY)
         { /* That's it */ }
 
         __host__ __device__
-        Point operator()() {
+        Point operator()(std::size_t n)
+        {
+            RandomEngine algoX(seedX), algoY(seedY);
+            RealDistribution dist(0, 1);
+            algoX.discard(n);
+            algoY.discard(n);
             return Point(dist(algoX), dist(algoY));
         }
     };
 
-    __host__ __device__
-    bool isInside(Point p) {
-        return p.x * p.x + p.y * p.y <= 1;
-    }
-
-    Real computeRatio(std::size_t pointCount) {
-        // Build a random point generator
-        RandomPointGenerator generator;
-
-        // Create some random point in the unit square
-        thrust::device_vector<Point> points(pointCount);
-        thrust::generate(points.begin(), points.end(), generator);
-
-        // TODO remove this loop
-        for(int i = 0; i < points.size(); i++) {
-            std::cout << "points[" << i << "] = " << points[i]
-                      << (isInside(points[i]) ? " is in" : "") << std::endl;
+    struct IsInside {
+        __host__ __device__
+        bool operator()(Point const& p)
+        {
+            return p.first * p.first + p.second * p.second <= 1;
         }
+    };
+
+    Real computeRatio(std::size_t pointCount)
+    {
+        // Create some random point in the unit square
+        RandomPointGenerator generator(std::rand(), std::rand());
+        Points points(pointCount);
+        thrust::counting_iterator<std::size_t> index_sequence_begin(0);
+        thrust::transform(index_sequence_begin,
+                          index_sequence_begin + pointCount,
+                          points.begin(),
+                          generator);
 
         // Count point inside the circle
-        const int pointInCircleCount = thrust::count_if(points.begin(), points.end(), isInside);
+        const int pointInCircleCount = thrust::count_if(points.begin(), points.end(), IsInside());
 
         // π/4 = .785398163
         const Real ratio = static_cast<Real>(pointInCircleCount) / static_cast<Real>(pointCount);
@@ -78,7 +71,8 @@ namespace mc {
         return ratio;
     }
 
-    void stats(std::size_t pointCount) {
+    void stats(std::size_t pointCount)
+    {
         sf::Clock clk;
 
         const Real r = computeRatio(pointCount);
@@ -106,8 +100,3 @@ int main(int argc, char** argv)
     return 0;
 }
 
-std::ostream& operator<<(std::ostream& out, sf::Time const& t)
-{
-    sf::Int64 micros = t.asMicroseconds();
-    return out << micros << "µs";
-}
