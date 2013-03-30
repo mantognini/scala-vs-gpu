@@ -87,6 +87,9 @@ int main(int argc, char** argv)
     // Init random numbers
     std::srand(std::time(0));
 
+    // Warmup !
+    mc::stats(128);
+
     // Benchmark with "low" count (from 2^7 to 2^15)
     for (std::size_t c = 128; c <= 32768; c *= 2) { 
         mc::stats(c);
