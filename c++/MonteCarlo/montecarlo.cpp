@@ -53,13 +53,21 @@ namespace mc {
         const Real r = computeRatio(pointCount);
     
         const sf::Time time = clk.restart();
-        std::cout << "ratio computed in " << time << " : π ~ " << (r * 4) << std::endl;
+        std::cout << pointCount << " points; ratio computed in " << time << " : π ~ " << (r * 4) << std::endl;
     }
 }
 
 int main(int argc, const char * argv[])
 {
-    mc::stats(128);
+    // Benchmark with "low" count (from 2^7 to 2^15)
+    for (std::size_t c = 128; c <= 32768; c *= 2) { 
+        mc::stats(c);
+    }
+
+    // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
+    for (std::size_t c = 65536; c <= 4194304; c += 524288) {
+        mc::stats(c);
+    }
 
     return 0;
 }
