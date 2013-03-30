@@ -7,8 +7,6 @@
 #ifndef INFOSV_RANDOM_UNIFORM_HPP
 #define INFOSV_RANDOM_UNIFORM_HPP
 
-#include "../Utility/Vec2d.hpp"
-
 #include <type_traits>
 #include <random>
 
@@ -43,9 +41,6 @@ T uniform(T min, T max)
 
     return dist(algo);
 }
-
-template <>
-Vec2d uniform<Vec2d>(Vec2d topLeft, Vec2d bottomRight);
 
 #endif // INFOSV_RANDOM_UNIFORM_HPP
 
