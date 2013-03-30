@@ -1,40 +1,47 @@
-import benchmark.{ TicToc }
+import org.scalameter.api._
 import scala.util.{ Random }
 
-object MonteCarlo extends TicToc {
+object MonteCarlo extends PerformanceTest {
+    /* configuration */
+    lazy val executor = LocalExecutor(
+        Executor.Warmer.Default(),
+        Aggregator.min,
+        new Measurer.Default
+    )
+    /*SeparateJvmsExecutor(
+        Executor.Warmer.Default(),
+        Aggregator.min,
+        new Measurer.Default
+    )*/
+    lazy val reporter = new LoggingReporter
+    lazy val persistor = Persistor.None
 
-	// Generate a random number in [0; max[
-    def uniformDouble(generator: Random, max: Double): Double = generator.nextDouble * max
+    // List of results
+    var results = List.empty[(Int, Double)] /* (point count, π/4 approximation) */
 
-    def main(args: Array[String]): Unit = {
-    	// TODO change TicToc to Scalameter for this benchmark
+    val counts = Gen.exponential("point counts")(128, 4194304, 2)
 
-        val pointCount: Int = 50000
-        val radius: Double = 20.0
+    performance of "Monte Carlo π/4" in {
+        using(counts) in { pointCount =>
+            // Create two uniform random number generators
+            val gX = Random
+            val gY = Random
+            def randomPoint: (Double, Double) = (gX.nextDouble, gY.nextDouble)
 
-        // Create two uniform random number generators
-        val gX = Random
-        val gY = Random
-        def generatorX = uniformDouble(gX, radius)
-        def generatorY = uniformDouble(gY, radius)
-        def randomPoint: (Double, Double) = (generatorX, generatorY)
+            // Create some random point in the square
+            val points = 0 until pointCount map { _ => randomPoint }
 
-        tic
+            // Count point inside the circle
+            val pointInCircleCount = points count { case (x, y) => x * x + y * y <= 1 }
 
-        // Create some random point in the square
-        val points = 0 until pointCount map { _ => randomPoint }
+            // π/4 = .785398163
+            val ratio = pointInCircleCount.toDouble / pointCount.toDouble
 
-        // Count point inside the circle
-        val pointInCircleCount = points count { case (x, y) => x * x + y * y <= radius * radius }
-
-        // π/4 = .785398163
-        val ratio = pointInCircleCount.toDouble / pointCount.toDouble
-
-        toc("Scala MonteCarlo Sequencial, " + pointCount)
-        writeTimesLog()
-
-        println("π is approximately " + (ratio * 4))
+            results = (pointCount, ratio) :: results
+        }
     }
+
+    println("Results:\n" + results.map{ case (c, a) => c + " ~> " + a}.mkString("\n"))
 }
 
 
