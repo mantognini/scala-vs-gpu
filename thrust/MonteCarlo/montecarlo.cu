@@ -3,6 +3,7 @@
 #include <thrust/count.h>
 #include <ctime>
 #include <cstdlib>
+#include <sstream>
 #include <SFML/System.hpp>
 
 namespace mc {
@@ -16,12 +17,6 @@ namespace mc {
     std::ostream& operator<<(std::ostream& out, Point const& p)
     {
         return out << "(" << p.first << "; " << p.second << ")";
-    }
-
-    std::ostream& operator<<(std::ostream& out, sf::Time const& t)
-    {
-        sf::Int64 micros = t.asMicroseconds();
-        return out << micros << "µs";
     }
     
     struct RandomPointGenerator {
@@ -70,17 +65,51 @@ namespace mc {
 
         return ratio;
     }
+}
 
-    void stats(std::size_t pointCount)
-    {
+/*
+ * Action must have two functions :
+ *  - operator() which runs the action and returns a Result; 
+ *  - csvdescription() which returns a string describing the parameters
+ *    of the action separated by a comma.
+ * 
+ * Also, << for std::ostream and Result must exist.
+ *
+ * The format of the output is as follow :
+ * 'action.csvdescription()','action()',time
+ *
+ * where time is expressed in µs.
+ */
+template <typename Action, typename Result>
+void stats(Action const& action, std::size_t measureCount = 1, std::ostream& out = std::cout)
+{
+    for (int i = 0; i < measureCount; ++i) {
         sf::Clock clk;
-
-        const Real r = computeRatio(pointCount);
-    
+        const Result r = action();
         const sf::Time time = clk.restart();
-        std::cout << pointCount << " points; ratio computed in " << time << " : π ~ " << (r * 4) << std::endl;
+        out << action.csvdescription() << "," << r << "," << time.asMicroseconds() << std::endl;
     }
 }
+
+struct MonteCarlo
+{
+    MonteCarlo(std::size_t pointCount)
+    : pointCount(pointCount)
+    { /* - */ }
+
+    double operator()() const {
+        return mc::computeRatio(pointCount);
+    }
+
+    std::string csvdescription() const {
+        std::stringstream ss;
+        ss << pointCount;
+        return ss.str();
+    }
+
+    std::size_t pointCount;
+};
+
 
 int main(int argc, char** argv)
 {
@@ -88,16 +117,16 @@ int main(int argc, char** argv)
     std::srand(std::time(0));
 
     // Warmup !
-    mc::stats(128);
+    stats<MonteCarlo, double>(MonteCarlo(128));
 
     // Benchmark with "low" count (from 2^7 to 2^15)
     for (std::size_t c = 128; c <= 32768; c *= 2) { 
-        mc::stats(c);
+        stats<MonteCarlo, double>(MonteCarlo(c), 10);
     }
 
     // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
     for (std::size_t c = 65536; c <= 4194304; c += 524288) {
-        mc::stats(c);
+        stats<MonteCarlo, double>(MonteCarlo(c), 3);
     }
 
     return 0;
