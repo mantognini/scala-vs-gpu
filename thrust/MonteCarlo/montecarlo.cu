@@ -46,7 +46,7 @@ namespace mc {
         }
     };
 
-    Real computeRatio(std::size_t pointCount)
+    Real computePi(std::size_t pointCount)
     {
         // Create some random point in the unit square
         RandomPointGenerator generator(std::rand(), std::rand());
@@ -63,7 +63,7 @@ namespace mc {
         // π/4 = .785398163
         const Real ratio = static_cast<Real>(pointInCircleCount) / static_cast<Real>(pointCount);
 
-        return ratio;
+        return ratio * 4.0;
     }
 }
 
@@ -98,7 +98,7 @@ struct MonteCarlo
     { /* - */ }
 
     double operator()() const {
-        return mc::computeRatio(pointCount);
+        return mc::computePi(pointCount);
     }
 
     std::string csvdescription() const {
@@ -121,12 +121,12 @@ int main(int argc, char** argv)
 
     // Benchmark with "low" count (from 2^7 to 2^15)
     for (std::size_t c = 128; c <= 32768; c *= 2) { 
-        stats<MonteCarlo, double>(MonteCarlo(c), 10);
+        stats<MonteCarlo, double>(MonteCarlo(c), 100);
     }
 
     // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
     for (std::size_t c = 65536; c <= 4194304; c += 524288) {
-        stats<MonteCarlo, double>(MonteCarlo(c), 3);
+        stats<MonteCarlo, double>(MonteCarlo(c), 10);
     }
 
     return 0;
