@@ -1,13 +1,12 @@
     
 #include <iostream>
-#include <SFML/System.hpp>
 #include <random>
 #include <functional>
 #include <utility>
 #include <vector>
 #include <algorithm>
-
-std::ostream& operator<<(std::ostream& out, sf::Time const& t);
+#include <sstream>
+#include "stats.hpp"
 
 namespace mc {
     
@@ -16,7 +15,7 @@ namespace mc {
     typedef std::uniform_real_distribution<Real> RealDistribution;
     typedef std::default_random_engine RandomEngine;
 
-    Real computeRatio(std::size_t pointCount) {
+    Real computePi(std::size_t pointCount) {
         // Define two random number generators gX and gY
         RandomEngine algoX, algoY;
         std::random_device rd;
@@ -44,36 +43,43 @@ namespace mc {
         // π/4 = .785398163
         const Real ratio = static_cast<Real>(pointInCircleCount) / static_cast<Real>(pointCount);
 
-        return ratio;
-    }
-
-    void stats(std::size_t pointCount) {
-        sf::Clock clk;
-
-        const Real r = computeRatio(pointCount);
-    
-        const sf::Time time = clk.restart();
-        std::cout << pointCount << " points; ratio computed in " << time << " : π ~ " << (r * 4) << std::endl;
+        return ratio * 4.0;
     }
 }
+
+struct MonteCarlo
+{
+    MonteCarlo(std::size_t pointCount)
+    : pointCount(pointCount)
+    { /* - */ }
+
+    double operator()() const {
+        return mc::computePi(pointCount);
+    }
+
+    std::string csvdescription() const {
+        std::stringstream ss;
+        ss << pointCount;
+        return ss.str();
+    }
+
+    std::size_t pointCount;
+};
 
 int main(int argc, const char * argv[])
 {
     // Benchmark with "low" count (from 2^7 to 2^15)
-    for (std::size_t c = 128; c <= 32768; c *= 2) { 
-        mc::stats(c);
+    for (std::size_t c = 128; c <= 32768; c *= 2) {
+        // Do 100 measurements for low point count
+        stats<MonteCarlo, double>(MonteCarlo(c), 100);
     }
 
     // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
     for (std::size_t c = 65536; c <= 4194304; c += 524288) {
-        mc::stats(c);
+        // Do 10 measurements for each high point count
+        stats<MonteCarlo, double>(MonteCarlo(c), 10);
     }
 
     return 0;
 }
 
-std::ostream& operator<<(std::ostream& out, sf::Time const& t)
-{
-    sf::Int64 micros = t.asMicroseconds();
-    return out << micros << "µs";
-}
