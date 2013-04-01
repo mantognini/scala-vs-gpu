@@ -2,21 +2,29 @@ import org.scalameter.api._
 import scala.util.{ Random }
 import scala.collection.parallel.immutable.{ ParSeq }
 import scala.collection.{ GenSeq }
+import java.io.{ BufferedWriter, FileWriter, File }
 
-case class CSVReporter() extends Reporter {
+case class CSVReporter(filename: String = "results.csv") extends Reporter {
+    val file = new File(filename)
+    file.delete()
+
     def report(results: org.scalameter.utils.Tree[org.scalameter.CurveData],
                persistor: org.scalameter.Persistor) {
 
         // Nothing here
-
     }
 
     def report(result: org.scalameter.CurveData,
                persistor: org.scalameter.Persistor) {
-        println("::Benchmark " + result.context.scope + "::")
+
+        val out = new BufferedWriter(new FileWriter(file, true))
+        out.write("::Benchmark " + result.context.scope + "::")
+        out.newLine()
         for (measurement <- result.measurements) {
-            println(measurement.params.axisData.values.mkString(",") + "," + measurement.time)
+            out.write(measurement.params.axisData.values.mkString(",") + "," + measurement.time)
+            out.newLine()
         }
+        out.close()
     }
 }
 
@@ -36,7 +44,8 @@ object MonteCarlo extends PerformanceTest {
 
     lazy val reporter = Reporter.Composite(
         ChartReporter(ChartFactory.XYLine()), 
-        CSVReporter()
+        CSVReporter(),
+        LoggingReporter()
     )
 
     lazy val persistor = Persistor.None
