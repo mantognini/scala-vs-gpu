@@ -3,6 +3,24 @@ import scala.util.{ Random }
 import scala.collection.parallel.immutable.{ ParSeq }
 import scala.collection.{ GenSeq }
 
+case class CSVReporter() extends Reporter {
+    def report(results: org.scalameter.utils.Tree[org.scalameter.CurveData],
+               persistor: org.scalameter.Persistor) {
+
+        // Nothing here
+
+    }
+
+    def report(result: org.scalameter.CurveData,
+               persistor: org.scalameter.Persistor) {
+        println("::Benchmark " + result.context.scope + "::")
+        for (measurement <- result.measurements) {
+            println(measurement.params.axisData.values.mkString(",") + "," + measurement.time)
+        }
+    }
+}
+
+
 object MonteCarlo extends PerformanceTest {
     /* configuration */
     lazy val executor = LocalExecutor(
@@ -15,10 +33,12 @@ object MonteCarlo extends PerformanceTest {
         Aggregator.min,
         new Measurer.Default
     )*/
+
     lazy val reporter = Reporter.Composite(
         ChartReporter(ChartFactory.XYLine()), 
-        new LoggingReporter // TODO edit this logger to display π/4 approximations
+        CSVReporter()
     )
+
     lazy val persistor = Persistor.None
 
     trait Filler {
