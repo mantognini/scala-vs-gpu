@@ -78,7 +78,7 @@ object MonteCarlo extends PerformanceTest {
     val lowCounts = Gen.exponential("point count")(128, 32768, 2) // From 2^7 to 2^15
     val highCounts = Gen.range("point count")(65536, 4194304, 524288) // From 2^16 to 2^22 in ~8 steps
 
-    performance of "MonteCarlo" in {
+    performance of "MonteCarlo" config(exec.maxWarmupRuns -> 10) in {
         performance of "Low Count" in {
             measure method "computeRatio" in {
                 using(lowCounts) in { pointCount => computeRatio(pointCount) }
