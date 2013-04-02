@@ -63,7 +63,7 @@ struct TriMatrixMul
             // Compute the element
             Real sum = 0;
             for (std::size_t k = 0; k <= i; ++k) {
-                sum += A.get()[offset + k] * B.get()[k * N + j];
+                //sum += A.get()[offset + k] * B.get()[k * N + j];
             }
             
             return sum;
