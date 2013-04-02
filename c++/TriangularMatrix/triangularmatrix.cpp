@@ -2,6 +2,7 @@
 #include <vector>
 #include <random>
 #include <sstream>
+#include <numeric>
 
 typedef double Real;
 typedef std::vector<Real> Matrix;
@@ -11,40 +12,6 @@ std::ostream& operator<<(std::ostream& out, Matrix const& m);
 #include "stats.hpp"
 
 // Compute the NxN matrix multiplication of a lower triangular matrix A with a square matrix B
-
-/*!
- * @brief Randomly generate a number on a uniform distribution
- *
- * @param min lower bound
- * @param max upper bound
- * @return a random number fitting the uniform distribution
- *
- * @note function imported from prj-sv-ba2
- */
-template <typename T>
-T uniform(T min, T max)
-{
-    static std::default_random_engine algo;
-    
-    static bool initialise = true;
-    if (initialise) {
-        initialise = false;
-        std::random_device rd;
-        algo.seed(rd());
-    }
-
-    typedef typename std::is_integral<T> condition;
-    typedef typename std::uniform_int_distribution<T> integer_dist;
-    typedef typename std::uniform_real_distribution<T> real_dist;
-
-    typedef typename std::conditional<condition::value,
-                                      integer_dist,
-                                      real_dist>::type distribution_type;
-
-    distribution_type dist(min, max);
-
-    return dist(algo);
-}
 
 std::ostream& operator<<(std::ostream& out, Matrix const& m)
 {
@@ -64,16 +31,13 @@ struct TriMatrixMul
 
     // Perform the computation
     Matrix operator()() const {
-        // Create a random generator (we don't care about the bounds in this benchmark)
-        const auto randGenerator = []() -> Real { return uniform<Real>(-100, 100); };
-
         // Create A, a lower triangular matrix
         Matrix A(N * (N + 1) / 2, 0.0);
-        std::generate(A.begin(), A.end(), randGenerator);
+        std::iota(A.begin(), A.end(), 0.0);
 
         // Create B, a square matrix
         Matrix B(N * N, 0.0);
-        std::generate(B.begin(), B.end(), randGenerator);
+        std::iota(B.begin(), B.end(), 0.0);
 
         // Create result matrix C
         Matrix C(N * N, 0.0);
