@@ -5,6 +5,34 @@
 #include <SFML/System.hpp>
 #include <iostream>
 
+// Execution block with a result
+template <typename Result>
+struct Block
+{
+    template <typename Action>
+    void run(Action const& action, std::ostream& out)
+    {
+        sf::Clock clk;
+        const Result r = action();
+        const sf::Time time = clk.restart();
+        out << action.csvdescription() << "," << r << "," << time.asMicroseconds() << std::endl;
+    }
+};
+
+// Execution block with no result
+template <>
+struct Block<void>
+{
+    template <typename Action>
+    void run(Action const& action, std::ostream& out)
+    {
+        sf::Clock clk;
+        action();
+        const sf::Time time = clk.restart();
+        out << action.csvdescription() << "," << time.asMicroseconds() << std::endl;
+    }
+};
+
 /*
  * Action must have two functions :
  *  - operator() which runs the action and returns a Result; 
@@ -18,14 +46,11 @@
  *
  * where time is expressed in µs.
  */
-template <typename Action, typename Result>
+template <typename Action, typename Result = void>
 void stats(Action const& action, std::size_t measureCount = 1, std::ostream& out = std::cout)
 {
     for (int i = 0; i < measureCount; ++i) {
-        sf::Clock clk;
-        const Result r = action();
-        const sf::Time time = clk.restart();
-        out << action.csvdescription() << "," << r << "," << time.asMicroseconds() << std::endl;
+        Block<Result>().run(action, out);
     }
 }
 
