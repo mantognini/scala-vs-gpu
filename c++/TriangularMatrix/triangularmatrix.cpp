@@ -10,7 +10,7 @@ std::ostream& operator<<(std::ostream& out, Matrix const& m);
 
 #include "stats.hpp"
 
-// Compute the NxN matrix multiplication of a triangular matrix A with a square matrix B
+// Compute the NxN matrix multiplication of a lower triangular matrix A with a square matrix B
 
 /*!
  * @brief Randomly generate a number on a uniform distribution
@@ -67,16 +67,27 @@ struct TriMatrixMul
         // Create a random generator (we don't care about the bounds in this benchmark)
         const auto randGenerator = []() -> Real { return uniform<Real>(-100, 100); };
 
-        // Create A
+        // Create A, a lower triangular matrix
         Matrix A(N * (N + 1) / 2, 0.0);
         std::generate(A.begin(), A.end(), randGenerator);
 
-        // Create B
+        // Create B, a square matrix
         Matrix B(N * N, 0.0);
         std::generate(B.begin(), B.end(), randGenerator);
 
         // Create result matrix C
         Matrix C(N * N, 0.0);
+
+        // Compute the result
+        for (std::size_t i = 0, offset = 0; i < N; offset += ++i) {
+            for (std::size_t j = 0; j < N; ++j) {
+                Real sum = 0;
+                for (std::size_t k = 0; k <= i; ++k) {
+                    sum += A[offset + k] * B[k * N + j];
+                }
+                C[i * N + j] = sum;
+            }
+        }
 
         return C;
     }
@@ -93,7 +104,7 @@ struct TriMatrixMul
 
 int main(int argc, const char * argv[])
 {
-    stats<TriMatrixMul, Matrix>(TriMatrixMul(10), 100);
+    stats<TriMatrixMul, Matrix>(TriMatrixMul(10), 10);
 
     return 0;
 }
