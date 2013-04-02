@@ -1,12 +1,14 @@
 
 #include <thrust/device_vector.h>
+#include <thrust/device_ptr.h>
 #include <thrust/host_vector.h>
+#include <thrust/sequence.h>
 #include <sstream>
-#include <numeric>
 
 typedef double Real;
 typedef thrust::host_vector<Real> Matrix;
 typedef thrust::device_vector<Real> MatrixOnDevice;
+typedef thrust::device_ptr<Real> PointerOnDevice;
 
 std::ostream& operator<<(std::ostream& out, Matrix const& m);
 
@@ -39,31 +41,66 @@ struct TriMatrixMul
     : N(N)
     { /* */ }
 
+    struct Computer
+    {
+        Computer(PointerOnDevice const& A, PointerOnDevice const& B, std::size_t N)
+        : A(B)
+        , B(B)
+        , N(N)
+        { /*  */ }
+
+        __host__ __device__
+        Real operator()(std::size_t ij)
+        {
+            // Unmap ij to (i, j)
+            const std::size_t i = ij % N;
+            const std::size_t j = ij / N;
+
+            // Compute the offset for A
+            std::size_t offset = 0;
+            for (std::size_t x = 0; x <= i; offset += ++x);
+
+            // Compute the element
+            Real sum = 0;
+            for (std::size_t k = 0; k <= i; ++k) {
+                sum += A.get()[offset + k] * B.get()[k * N + j];
+            }
+            
+            return sum;
+        }
+
+        PointerOnDevice const& A;
+        PointerOnDevice const& B;
+        std::size_t N;
+    };
+
     // Perform the computation
     Matrix operator()() const {
         // Create A, a lower triangular matrix
         Matrix A(N * (N + 1) / 2, 0.0);
-        std::iota(A.begin(), A.end(), 0.0);
-        MatrixOnDevice AD = A;
+        thrust::sequence(A.begin(), A.end(), 0.0);
+        MatrixOnDevice dA = A;
 
         // Create B, a square matrix
         Matrix B(N * N, 0.0);
-        std::iota(B.begin(), B.end(), 0.0);
-        MatrixOnDevice BD = B;
+        thrust::sequence(B.begin(), B.end(), 0.0);
+        MatrixOnDevice dB = B;
 
         // Create result matrix C
-        Matrix C(N * N, 0.0);
+        MatrixOnDevice dC(N * N, 0.0);
 
-        // Compute the result
-        // for (std::size_t i = 0, offset = 0; i < N; offset += ++i) {
-        //     for (std::size_t j = 0; j < N; ++j) {
-        //         Real sum = 0;
-        //         for (std::size_t k = 0; k <= i; ++k) {
-        //             sum += A[offset + k] * B[k * N + j];
-        //         }
-        //         C[i * N + j] = sum;
-        //     }
-        // }
+        // To perform the computation on the GPU we map (i, j) to ij
+
+        // Launch the kernels
+        thrust::counting_iterator<std::size_t> indexesBegin(0);
+        thrust::counting_iterator<std::size_t> indexesEnd(N * N);
+        Computer computer(dA.data(), dB.data(), N);
+        thrust::transform(indexesBegin, indexesEnd, 
+                          dC.begin(),
+                          computer);
+
+        // Copy result to the host
+        Matrix C = dC;
 
         return C;
     }
