@@ -8,7 +8,7 @@
 #include "stats.hpp"
 
 namespace mc {
-    typedef double Real;
+    typedef float Real;
     typedef thrust::pair<Real, Real> Point;
     // typedef thrust::host_vector<Point> Points;
     typedef thrust::device_vector<Point> Points;

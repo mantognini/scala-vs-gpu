@@ -13,7 +13,7 @@
 
 #include "stats.hpp"
 
-typedef double Real;
+typedef float Real;
 
 struct MonteCarlo : public thrust::unary_function<std::size_t, Real>
 {
