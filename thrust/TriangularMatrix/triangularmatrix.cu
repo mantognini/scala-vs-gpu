@@ -4,11 +4,12 @@
 #include <thrust/host_vector.h>
 #include <thrust/sequence.h>
 #include <sstream>
+#include <vector>
 
-typedef double Real;
+typedef float Real;
 typedef thrust::host_vector<Real> Matrix;
 typedef thrust::device_vector<Real> MatrixOnDevice;
-typedef thrust::device_ptr<Real> PointerOnDevice;
+typedef Real* PointerOnDevice;
 
 std::ostream& operator<<(std::ostream& out, Matrix const& m);
 
@@ -19,7 +20,7 @@ std::ostream& operator<<(std::ostream& out, Matrix const& m);
 //
 
 // Disable output of matrix data
-// #define OUTPUT_MATRIX_DATA
+#define OUTPUT_MATRIX_DATA
 
 std::ostream& operator<<(std::ostream& out, Matrix const& m)
 {
@@ -63,7 +64,7 @@ struct TriMatrixMul
             // Compute the element
             Real sum = 0;
             for (std::size_t k = 0; k <= i; ++k) {
-                //sum += A.get()[offset + k] * B.get()[k * N + j];
+                sum += A[offset + k] * B[k * N + j];
             }
             
             return sum;
@@ -77,30 +78,58 @@ struct TriMatrixMul
     // Perform the computation
     Matrix operator()() const {
         // Create A, a lower triangular matrix
-        Matrix A(N * (N + 1) / 2, 0.0);
-        thrust::sequence(A.begin(), A.end(), 0.0);
-        MatrixOnDevice dA = A;
+
+        // Memory allocation
+        PointerOnDevice dARawPtr = 0;
+        const std::size_t dASize = N * (N + 1) / 2;
+        cudaMalloc((void**)&dARawPtr, dASize * sizeof(Real));
+
+        // Init its values with 0, 1, 2, ... M
+        thrust::device_ptr<Real> dAPtr = thrust::device_pointer_cast(dARawPtr);
+        thrust::sequence(dAPtr, dAPtr + dASize, 0.0f);
 
         // Create B, a square matrix
-        Matrix B(N * N, 0.0);
-        thrust::sequence(B.begin(), B.end(), 0.0);
-        MatrixOnDevice dB = B;
+
+        // Memory allocation
+        PointerOnDevice dBRawPtr = 0;
+        const std::size_t dBSize = N * N;
+        cudaMalloc((void**)&dBRawPtr, dBSize * sizeof(Real));
+
+        // Init its values with 0, 1, 2, ... N * N
+        thrust::device_ptr<Real> dBPtr = thrust::device_pointer_cast(dBRawPtr);
+        thrust::sequence(dBPtr, dBPtr + dBSize, 0.0f);
 
         // Create result matrix C
-        MatrixOnDevice dC(N * N, 0.0);
+
+        // Create C, a square matrix for the result of A * B
+
+        // Memory allocation
+        PointerOnDevice dCRawPtr = 0;
+        const std::size_t dCSize = N * N;
+        cudaMalloc((void**)&dCRawPtr, dCSize * sizeof(Real));
+
+        thrust::device_ptr<Real> dCPtr = thrust::device_pointer_cast(dCRawPtr);
 
         // To perform the computation on the GPU we map (i, j) to ij
 
         // Launch the kernels
         thrust::counting_iterator<std::size_t> indexesBegin(0);
         thrust::counting_iterator<std::size_t> indexesEnd(N * N);
-        Computer computer(dA.data(), dB.data(), N);
-        thrust::transform(indexesBegin, indexesEnd, 
-                          dC.begin(),
-                          computer);
+        Computer computer(dARawPtr, dBRawPtr, N);
+        thrust::transform(indexesBegin, indexesEnd, dCPtr, computer);
 
         // Copy result to the host
-        Matrix C = dC;
+        Matrix C(dCSize);
+        cudaMemcpy(C.data(), dCRawPtr, dCSize * sizeof(Real), cudaMemcpyDeviceToHost);
+
+        cudaFree(dCRawPtr);
+        dCRawPtr = 0;
+
+        cudaFree(dBRawPtr);
+        dBRawPtr = 0;
+
+        cudaFree(dARawPtr);
+        dARawPtr = 0;
 
         return C;
     }
