@@ -11,15 +11,24 @@ std::ostream& operator<<(std::ostream& out, Matrix const& m);
 
 #include "stats.hpp"
 
+//
 // Compute the NxN matrix multiplication of a lower triangular matrix A with a square matrix B
+//
+
+// Disable output of matrix data
+// #define OUTPUT_MATRIX_DATA
 
 std::ostream& operator<<(std::ostream& out, Matrix const& m)
 {
+#ifdef OUTPUT_MATRIX_DATA
     const std::size_t NN = m.size();
     for (std::size_t i = 0; i < NN; ++i) {
         out << m[i] << (i < NN - 1 ? ";" : "");
     }
     return out;
+#else
+    return out << "skipped";
+#endif
 }
 
 struct TriMatrixMul
@@ -68,7 +77,10 @@ struct TriMatrixMul
 
 int main(int argc, const char * argv[])
 {
-    stats<TriMatrixMul, Matrix>(TriMatrixMul(10), 10);
+    // Make stats from N = 2 to N = 2^12
+    for (std::size_t N = 2; N <= 4096; N *= 2) {
+        stats<TriMatrixMul, Matrix>(TriMatrixMul(N), 4);
+    }
 
     return 0;
 }
