@@ -46,7 +46,7 @@ struct Block<void>
  *
  * where time is expressed in µs.
  */
-template <typename Action, typename Result = void>
+template <typename Action, typename Result/* = void*/>
 void stats(Action const& action, std::size_t measureCount = 1, std::ostream& out = std::cout)
 {
     for (int i = 0; i < measureCount; ++i) {
