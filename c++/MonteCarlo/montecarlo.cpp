@@ -53,7 +53,7 @@ struct MonteCarlo
     : pointCount(pointCount)
     { /* - */ }
 
-    double operator()() const {
+    Real operator()() const {
         return mc::computePi(pointCount);
     }
 
