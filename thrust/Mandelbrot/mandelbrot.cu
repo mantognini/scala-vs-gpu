@@ -85,14 +85,14 @@ struct Mandelbrot : public thrust::unary_function<Index, Color>
         const unsigned int y = index / side; // integer division
 
         const Complex c(
-            range.first.real() + x / (side - Real(1.0)) * (range.second.real() - range.first.real()),
-            range.first.imag() + y / (side - Real(1.0)) * (range.second.imag() - range.first.imag())
+            range.first.real() + x / (side - Real(1.0f)) * (range.second.real() - range.first.real()),
+            range.first.imag() + y / (side - Real(1.0f)) * (range.second.imag() - range.first.imag())
         );
 
         Complex z( 0, 0 );
 
         std::size_t iter = 0;
-        for (iter = 0; iter < maxIterations && abs(z) < Real(2.0); ++iter) {
+        for (iter = 0; iter < maxIterations && abs(z) < Real(2.0f); ++iter) {
             z = z * z + c;
         }
 
@@ -115,9 +115,9 @@ struct Mandelbrot : public thrust::unary_function<Index, Color>
 int main(int, char**)
 {
     const std::size_t sides[] = { 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 };
-    const std::size_t sidesCount = sizeof(sides);
+    const std::size_t sidesCount = 9;
     const std::size_t iterations[] = { 1, 10, 30, 80, 150, 250, 500, 1000, 2000, 8000 };
-    const std::size_t iterationsCount = sizeof(iterations);
+    const std::size_t iterationsCount = 10;
     const ComplexRange ranges[] = {
         ComplexRange( Complex(-1.72, 1.2), Complex(1.0, -1.2) ),
         ComplexRange( Complex(-0.7, 0), Complex(0.3, -1) ),
@@ -125,7 +125,7 @@ int main(int, char**)
         ComplexRange( Complex(-0.4, -0.6), Complex(-0.2, -0.8) ),
         ComplexRange( Complex(-0.24, -0.64), Complex(-0.26, -0.66) )
     };
-    const std::size_t rangesCount = sizeof(ranges);
+    const std::size_t rangesCount = 5;
 
     #ifdef SAVE_IMAGE
     const std::size_t repetitions = 1;
