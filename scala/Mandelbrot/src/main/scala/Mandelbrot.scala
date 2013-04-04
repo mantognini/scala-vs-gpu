@@ -58,13 +58,14 @@ object Mandelbrot {
             ComplexRange( Complex(-0.4, -0.6), Complex(-0.2, -0.8) ),
             ComplexRange( Complex(-0.24, -0.64), Complex(-0.26, -0.66) )
         )
+        val parallels = List(false, true)
 
         val inSet = Color(0x000000)
         val notInSet = Color(0xffffff)
 
         var imgId = 0;
 
-        def stats(side: Int, maxIteration: Int, range: ComplexRange) {
+        def stats(side: Int, maxIteration: Int, range: ComplexRange, parallel: Boolean) {
             // Clean the VM
             System.gc()
 
@@ -76,7 +77,7 @@ object Mandelbrot {
             val indexes = 0 until (side * side)
 
             val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
-            val img = indexes map generator.computeElement
+            val img = (if (parallel) indexes.par else indexes) map generator.computeElement
 
             //// COMPUTATION ENDS HERE
             
@@ -85,7 +86,7 @@ object Mandelbrot {
 
             val µs = (toc - tic) / 1000
 
-            val csvdescription = side + "," + maxIteration + "," + range
+            val csvdescription = (if (parallel) "parallel" else "sequential") + "," + side + "," + maxIteration + "," + range
             
             println(csvdescription + "," + µs)
 
@@ -104,9 +105,10 @@ object Mandelbrot {
 
         for(side <- sides;
             maxIteration <- iterations;
-            range <- ranges) {
+            range <- ranges;
+            parallel <- parallels) {
 
-            stats(side, maxIteration, range)
+            stats(side, maxIteration, range, parallel)
         }
     }
 }
