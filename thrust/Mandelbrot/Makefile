@@ -1,7 +1,7 @@
 all: release release_si
 
 bindir:
-	mkdir -p bin
+	mkdir -p bin/ tmp/
 
 release: bindir mandelbrot.cu
 	nvcc -O3 mandelbrot.cu -o bin/mandelbrot -lsfml-system -I ../../common/include
