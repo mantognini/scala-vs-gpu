@@ -68,6 +68,7 @@ struct Mandelbrot
         static std::size_t imgId = 0;
         sf::Image png; png.create(side, side, sf::Color::White);
 
+        // Export it to png
         for (std::size_t x = 0; x < side; ++x) {
             for (std::size_t y = 0; y < side; ++y) {
                 png.setPixel(x, y, getPixel(img, x, y) == inSetColor ? sf::Color::Black : sf::Color::White);
