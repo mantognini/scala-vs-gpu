@@ -2,7 +2,6 @@ import scala.math.{ sqrt }
 import java.awt.image.{ BufferedImage }
 import java.io.{ File }
 import javax.imageio.{ ImageIO }
-import benchmark.{ TicToc }
 
 // Minimal complex class for this application
 case class Complex(val r: Double, val i: Double) {
@@ -12,11 +11,11 @@ case class Complex(val r: Double, val i: Double) {
 
 	def abs: Double = sqrt(r * r + i * i)
 
-	override def toString(): String = "(" + r + ", " + i + ")"
+	override def toString(): String = "(" + r + "; " + i + ")"
 }
 
 case class ComplexRange(val first: Complex, val second: Complex) {
-	override def toString(): String =  "{ " + first + ", " + second + " }" 	
+	override def toString(): String =  "{ " + first + "; " + second + " }" 	
 }
 
 case class Color(val rgb: Int)
@@ -46,36 +45,66 @@ case class Mandelbrot(val width: Int, val height: Int,
 	}
 }
 
-object Mandelbrot extends TicToc {
+object Mandelbrot {
 
 	def main(args: Array[String]): Unit = {
-		// Start timer
-		tic
 
-  		val WIDTH = 2000
-  		val HEIGHT = 2000
-  		val iterations = 1000
-  		val range = ComplexRange(Complex(-1.72, 1.2), Complex(1.0, -1.2))
+	 	val sides = List( 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 )
+	 	val iterations = List( 1, 10, 30, 80, 150, 250, 500, 1000, 2000, 8000 )
+	 	val ranges = List(
+	        ComplexRange( Complex(-1.72, 1.2), Complex(1.0, -1.2) ),
+	        ComplexRange( Complex(-0.7, 0), Complex(0.3, -1) ),
+	        ComplexRange( Complex(-0.4, -0.5), Complex(0.1, -1) ),
+	        ComplexRange( Complex(-0.4, -0.6), Complex(-0.2, -0.8) ),
+	        ComplexRange( Complex(-0.24, -0.64), Complex(-0.26, -0.66) )
+	    )
+
   		val inSet = Color(0x000000)
   		val notInSet = Color(0xffffff)
 
-  		val indexes = 0 until (HEIGHT * WIDTH)
+  		var imgId = 0;
 
-  		val generator = Mandelbrot(WIDTH, HEIGHT, range, iterations, inSet, notInSet)
-  		val img = indexes map generator.computeElement
-  		
-  		toc("Scala Mandelbrot Sequencial, " + WIDTH + 'x' + HEIGHT + ", " + range)
-  		writeTimesLog()
+	    for(side <- sides
+	    	maxIteration <- iterations
+	    	range <- ranges) {
 
-  		val png = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB)
-  		for((index, color)  <- indexes zip img) {
-			val x = index % WIDTH
-			val y = index / HEIGHT
+	    	// Clean the VM
+	    	System.gc()
 
-			png.setRGB(x, y, color.rgb)
-  		}
+	    	// Start timer
+			val tic = System.nanoTime()
 
-  		val outputfile = new File("results/fractal.png");
-    	ImageIO.write(png, "png", outputfile);
+            //// COMPUTATION STARTS HERE
+
+	  		val indexes = 0 until (side * side)
+
+	  		val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
+	  		val img = indexes map generator.computeElement
+
+            //// COMPUTATION ENDS HERE
+	  		
+	  		// Stop timer
+	  		val toc = System.nanoTime();
+
+            val µs = (toc - tic) / 1000
+
+            val csvdescription = side + "," + maxIteration + "," + range
+            
+            println(csvdescription + "," + µs)
+
+	  		val png = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB)
+	  		for((index, color)  <- indexes zip img) {
+				val x = index % side
+				val y = index / side
+
+				png.setRGB(x, y, color.rgb)
+	  		}
+
+	  		val outputfile = new File("tmp/fractal_" + imgId + "_" + csvdescription + ".png");
+	    	ImageIO.write(png, "png", outputfile);
+	    	imgId += 1
+	    }
+
+		
 	}
 }
