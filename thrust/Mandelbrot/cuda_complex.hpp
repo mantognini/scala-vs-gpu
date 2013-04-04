@@ -221,8 +221,8 @@ template<class T, class charT, class traits>
 
 template<class _Tp> class  complex;
 
-template<class _Tp> complex<_Tp> operator*(const complex<_Tp>& __z, const complex<_Tp>& __w);
-template<class _Tp> complex<_Tp> operator/(const complex<_Tp>& __x, const complex<_Tp>& __y);
+template<class _Tp> CUDA_CALLABLE_MEMBER complex<_Tp> operator*(const complex<_Tp>& __z, const complex<_Tp>& __w);
+template<class _Tp> CUDA_CALLABLE_MEMBER complex<_Tp> operator/(const complex<_Tp>& __x, const complex<_Tp>& __y);
 
 template<class _Tp>
 class  complex
@@ -295,7 +295,7 @@ public:
 
     /*constexpr*/ CUDA_CALLABLE_MEMBER complex(float __re = 0.0f, float __im = 0.0f)
         : __re_(__re), __im_(__im) {}
-    explicit /*constexpr*/ complex(const complex<double>& __c);
+    explicit /*constexpr*/ CUDA_CALLABLE_MEMBER complex(const complex<double>& __c);
 
     /*constexpr*/ CUDA_CALLABLE_MEMBER float real() const {return __re_;}
     /*constexpr*/ CUDA_CALLABLE_MEMBER float imag() const {return __im_;}
@@ -350,7 +350,7 @@ public:
 
     /*constexpr*/ CUDA_CALLABLE_MEMBER complex(double __re = 0.0, double __im = 0.0)
         : __re_(__re), __im_(__im) {}
-    /*constexpr*/ complex(const complex<float>& __c);
+    /*constexpr*/ CUDA_CALLABLE_MEMBER complex(const complex<float>& __c);
 
     /*constexpr*/ CUDA_CALLABLE_MEMBER double real() const {return __re_;}
     /*constexpr*/ CUDA_CALLABLE_MEMBER double imag() const {return __im_;}
