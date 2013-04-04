@@ -132,7 +132,7 @@ int main(int, const char**)
     for (auto const& side: sides)
         for (auto const& maxIterations: iterations)
             for (auto const& range: ranges)
-                stats<Mandelbrot, void>({side, maxIterations, range}, repetitions);
+                stats<Mandelbrot, void>({side, maxIterations, range}, (maxIterations >= 1000 && side >= 2000 ? 1 : repetitions));
 
     return 0;
 }
