@@ -1,3 +1,4 @@
 all:
 	mkdir -p bin/
-	clang++ mandelbrot.cpp -o bin/mandelbrot -framework sfml-system -framework sfml-window -framework sfml-graphics -std=c++11 -stdlib=libc++
+	clang++ -Wall -Wextra -O3 mandelbrot.cpp -o bin/mandelbrot -framework sfml-system -std=c++11 -stdlib=libc++ -I ../../common/include
+

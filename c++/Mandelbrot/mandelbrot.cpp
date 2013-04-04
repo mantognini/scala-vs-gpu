@@ -1,33 +1,81 @@
 #include <iostream>
 #include <utility>
-#include <array>
+#include <vector>
 #include <complex>
-#include <SFML/Graphics.hpp>
+#include <cmath>
+#include <sstream>
+#include "stats.hpp"
 
-namespace mb {
+// black or white
+enum class Color : bool {
+    WHITE = true,
+    BLACK = false
+};
+constexpr Color inSetColor = Color::WHITE;
+constexpr Color notInSetColor = Color::BLACK;
 
-    typedef bool Color;
-    typedef std::pair<int, int> ImageCoord;
-    constexpr std::size_t WIDTH = 2000;
-    constexpr std::size_t HEIGHT = 2000;
-    typedef std::array<Color, HEIGHT * WIDTH> Image;
-    Color& getPixel(Image& img, std::size_t x, std::size_t y)
+typedef double Real;
+
+typedef std::complex<Real> Complex;
+
+std::ostream& operator<<(std::ostream& out, Complex const& z)
+{
+    return out << "(" << z.real() << ";" << z.imag() << ")";
+}
+
+typedef std::pair<Complex, Complex> ComplexRange;
+
+std::ostream& operator<<(std::ostream& out, ComplexRange const& range)
+{
+    return out << "{" << range.first << ";" << range.second << "}";
+}
+
+typedef std::vector<Color> Image; // square image stored in a 1D array
+
+std::size_t getSideSize(Image const& img)
+{
+    return std::sqrt(img.size());
+}
+
+Color& getPixel(Image& img, std::size_t x, std::size_t y)
+{
+    return img[y * getSideSize(img) + x];
+}
+
+struct Mandelbrot
+{
+    Mandelbrot(std::size_t side, std::size_t maxIterations, ComplexRange range)
+    : side(side)
+    , maxIterations(maxIterations)
+    , range(range)
+    { /* - */ }
+
+    // Perform the set computation
+    void operator()() const
     {
-        return img[y * WIDTH + x];
+        Image img(side * side);
+        for (std::size_t x = 0; x < side; ++x) {
+            for (std::size_t y = 0; y < side; ++y) {
+                getPixel(img, x, y) = computeElement(x, y);
+            }
+        }
+    }
+    
+    std::string csvdescription() const 
+    {
+        std::stringstream ss;
+        ss << side << "," 
+           << maxIterations << "," 
+           << range;
+        return ss.str();
     }
 
-    typedef std::complex<double> Complex;
-
-    typedef std::pair<Complex, Complex> ComplexRange;
-    
-    constexpr Color inSetColor = true;
-    constexpr Color notInSetColor = false;
-    
-    Color computeElement(ImageCoord const& coord, std::size_t maxIterations, ComplexRange const& range)
+    // Compute the color of one element of the set
+    Color computeElement(std::size_t x, std::size_t y) const
     {
-        Complex c {
-            range.first.real() + coord.first / (WIDTH - 1.0) * (range.second.real() - range.first.real()),
-            range.first.imag() + coord.second / (HEIGHT - 1.0) * (range.second.imag() - range.first.imag())
+        const Complex c {
+            range.first.real() + x / (side - 1.0) * (range.second.real() - range.first.real()),
+            range.first.imag() + y / (side - 1.0) * (range.second.imag() - range.first.imag())
         };
 
         Complex z = { 0, 0 };
@@ -40,42 +88,17 @@ namespace mb {
         return iter == maxIterations ? inSetColor : notInSetColor;
     }
 
-    void computeImage(Image& img, std::size_t maxIterations, ComplexRange const& range)
-    {
-        for (std::size_t x = 0; x < WIDTH; ++x) {
-            for (std::size_t y = 0; y < HEIGHT; ++y) {
-                getPixel(img, x, y) = computeElement({x, y}, maxIterations, range);
-            }
-        }
-    }
-}
+    std::size_t side, maxIterations;
+    ComplexRange range;
+};
 
-std::ostream& operator<<(std::ostream& out, sf::Time const& t)
+
+int main(int, const char**)
 {
-    sf::Int64 micros = t.asMicroseconds();
-    return out << micros << "µs";
-}
-
-int main(int argc, const char * argv[])
-{
-    sf::Clock clk;
-    mb::Image img;
-    std::size_t iterations = 1000;
-    mb::ComplexRange range = { mb::Complex(-1.72, 1.2), mb::Complex(1.0, -1.2) };
-    mb::computeImage(img, iterations, range);
-    auto const time = clk.restart();
-
-    std::cout << "fractal computed in " << time << std::endl;
-
-    sf::Image png; png.create(mb::WIDTH, mb::HEIGHT, sf::Color::White);
-
-    for (std::size_t x = 0; x < mb::WIDTH; ++x) {
-        for (std::size_t y = 0; y < mb::HEIGHT; ++y) {
-            if (mb::getPixel(img, x, y) == mb::inSetColor) png.setPixel(x, y, sf::Color::Black);
-        }
-    }
-
-    png.saveToFile("fractal.png");
+    std::size_t maxIterations = 1000;
+    std::size_t side = 2000;
+    ComplexRange range = { Complex(-1.72, 1.2), Complex(1.0, -1.2) };
+    stats<Mandelbrot, void>(Mandelbrot(side, maxIterations, range), 1);
 
     return 0;
 }
