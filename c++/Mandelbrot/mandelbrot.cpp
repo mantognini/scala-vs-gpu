@@ -113,10 +113,20 @@ struct Mandelbrot
 
 int main(int, const char**)
 {
-    std::size_t maxIterations = 1000;
-    std::size_t side = 2000;
-    ComplexRange range = { Complex(-1.72, 1.2), Complex(1.0, -1.2) };
-    stats<Mandelbrot, void>(Mandelbrot(side, maxIterations, range), 1);
+    const std::vector<std::size_t> sides = { 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 };
+    const std::vector<std::size_t> iterations = { 500, 1000, 2000, 8000 };
+    const std::vector<ComplexRange> ranges = {
+        { Complex(-1.72, 1.2), Complex(1.0, -1.2) },
+        { Complex(-0.7, 0), Complex(0.3, -1) },
+        { Complex(-0.4, -0.5), Complex(0.1, -1) },
+        { Complex(-0.4, -0.5), Complex(0.1, -1) },
+        { Complex(-0.4, -0.6), Complex(-0.2, -0.8) },
+    };
+
+    for (auto const& side: sides)
+        for (auto const& maxIterations: iterations)
+            for (auto const& range: ranges)
+                stats<Mandelbrot, void>({side, maxIterations, range}, 4);
 
     return 0;
 }
