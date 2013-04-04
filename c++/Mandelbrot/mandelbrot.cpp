@@ -6,6 +6,10 @@
 #include <sstream>
 #include "stats.hpp"
 
+#ifdef SAVE_IMAGE
+    #include <SFML/Graphics.hpp>
+#endif
+
 // black or white
 enum class Color : bool {
     WHITE = true,
@@ -59,6 +63,20 @@ struct Mandelbrot
                 getPixel(img, x, y) = computeElement(x, y);
             }
         }
+
+        #ifdef SAVE_IMAGE
+        static std::size_t imgId = 0;
+        sf::Image png; png.create(side, side, sf::Color::White);
+
+        for (std::size_t x = 0; x < side; ++x) {
+            for (std::size_t y = 0; y < side; ++y) {
+                png.setPixel(x, y, getPixel(img, x, y) == inSetColor ? sf::Color::Black : sf::Color::White);
+            }
+        }
+
+        png.saveToFile("tmp/fractal" + std::to_string(imgId) + ".png");
+        ++imgId;
+        #endif
     }
     
     std::string csvdescription() const 
