@@ -15,7 +15,7 @@ case class Complex(val r: Double, val i: Double) {
 }
 
 case class ComplexRange(val first: Complex, val second: Complex) {
-    override def toString(): String =  "{ " + first + "; " + second + " }"  
+    override def toString(): String =  "{" + first + "; " + second + "}"  
 }
 
 case class Color(val rgb: Int)
@@ -66,6 +66,24 @@ object Mandelbrot {
         var imgId = 0;
 
         def stats(side: Int, maxIteration: Int, range: ComplexRange, parallel: Boolean) {
+
+            // Generate an image of the Mandelbrot set
+            def compute() = {
+                val indexes = 0 until (side * side)
+
+                val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
+                val img = (if (parallel) indexes.par else indexes) map generator.computeElement
+
+                img
+            }
+
+            // Warmup
+            if (side <= 500 || side <= 1000 && maxIteration < 2000) {
+                for (i <- 0 until 20) {
+                    compute()
+                }
+            }
+
             // Clean the VM
             System.gc()
 
@@ -74,10 +92,7 @@ object Mandelbrot {
 
             //// COMPUTATION STARTS HERE
 
-            val indexes = 0 until (side * side)
-
-            val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
-            val img = (if (parallel) indexes.par else indexes) map generator.computeElement
+            val img = compute()
 
             //// COMPUTATION ENDS HERE
             
@@ -86,11 +101,13 @@ object Mandelbrot {
 
             val µs = (toc - tic) / 1000
 
+            // Display the result
             val csvdescription = (if (parallel) "parallel" else "sequential") + "," + side + "," + maxIteration + "," + range
-            
             println(csvdescription + "," + µs)
 
+            // Export the set to PNG
             val png = new BufferedImage(side, side, BufferedImage.TYPE_INT_RGB)
+            val indexes = 0 until (side * side)
             for((index, color)  <- indexes zip img) {
                 val x = index % side
                 val y = index / side
@@ -100,6 +117,7 @@ object Mandelbrot {
 
             val outputfile = new File("tmp/fractal_" + imgId + "_" + csvdescription + ".png");
             ImageIO.write(png, "png", outputfile);
+
             imgId += 1
         }
 
@@ -112,3 +130,4 @@ object Mandelbrot {
         }
     }
 }
+
