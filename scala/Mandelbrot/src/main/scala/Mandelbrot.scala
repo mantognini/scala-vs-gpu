@@ -64,10 +64,7 @@ object Mandelbrot {
 
         var imgId = 0;
 
-        for(side <- sides;
-            maxIteration <- iterations;
-            range <- ranges) {
-
+        def stats(side: Int, maxIteration: Int, range: ComplexRange) {
             // Clean the VM
             System.gc()
 
@@ -105,6 +102,11 @@ object Mandelbrot {
             imgId += 1
         }
 
-        
+        for(side <- sides;
+            maxIteration <- iterations;
+            range <- ranges) {
+
+            stats(side, maxIteration, range)
+        }
     }
 }
