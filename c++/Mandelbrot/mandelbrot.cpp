@@ -74,7 +74,7 @@ struct Mandelbrot
             }
         }
 
-        png.saveToFile("tmp/fractal_" + csvdescription() + "_" + std::to_string(imgId) + ".png");
+        png.saveToFile("tmp/fractal_" + std::to_string(imgId) + "_" + csvdescription() + ".png");
         ++imgId;
         #endif
     }
