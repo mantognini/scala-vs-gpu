@@ -64,8 +64,8 @@ object Mandelbrot {
 
         var imgId = 0;
 
-        for(side <- sides
-            maxIteration <- iterations
+        for(side <- sides;
+            maxIteration <- iterations;
             range <- ranges) {
 
             // Clean the VM
