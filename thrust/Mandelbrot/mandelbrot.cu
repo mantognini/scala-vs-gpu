@@ -1,93 +1,142 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
-
 #include <thrust/sequence.h>
-
-#include <SFML/Graphics.hpp>
-
 #include "cuda_complex.hpp"
-typedef complex<double> Complex;
+#include "stats.hpp"
+
+#ifdef SAVE_IMAGE
+    #include <SFML/Graphics.hpp>
+#endif
+
+typedef float Real;
+
+typedef complex<Real> Complex;
+
+std::ostream& operator<<(std::ostream& out, Complex const& z)
+{
+    return out << "(" << z.real() << ";" << z.imag() << ")";
+}
+
 typedef std::pair<Complex, Complex> ComplexRange;
 
-typedef unsigned int Color;
-typedef Color Index;
-// Note : indexes are stored as color to reduce memory usage (we transform Indexes into Colors in place)
+std::ostream& operator<<(std::ostream& out, ComplexRange const& range)
+{
+    return out << "{" << range.first << ";" << range.second << "}";
+}
 
-struct Mandelbrot : public thrust::unary_function<Index, Color> {
-    std::size_t width, height;
-    Color inSetColor, notInSetColor;
-    ComplexRange range;
-    std::size_t maxIterations;
+typedef bool Color;
 
-    Mandelbrot(std::size_t width, std::size_t height, Color in, Color out, ComplexRange range, std::size_t maxIterations)
-        : width(width), height(height), inSetColor(in), notInSetColor(out), range(range), maxIterations(maxIterations) {
-        /* that's it */
+static const Color inSetColor = true;
+static const Color notInSetColor = false;
+
+typedef std::size_t Index;
+
+struct Mandelbrot : public thrust::unary_function<Index, Color>
+{
+    Mandelbrot(std::size_t side, std::size_t maxIterations,
+               ComplexRange const& range)
+    : side(side)
+    , maxIterations(maxIterations)
+    , range(range)
+    { /* - */ }
+
+    // Perform the set computation
+    void operator()() const
+    {
+        // Create an array on the device
+        const std::size_t size = side * side;
+        thrust::device_vector<Color> deviceImg(size);
+
+        // Then, transform the indexes into 'colors'
+        thrust::transform(thrust::counting_iterator<Index>(0),
+                          thrust::counting_iterator<Index>(size),
+                          deviceImg.begin(),
+                          *this); // apply op()(Index)
+
+        // Copy the data to the host memory
+        thrust::host_vector<Color> img = deviceImg;
+
+        #ifdef SAVE_IMAGE
+        static std::size_t imgId = 0;
+
+        // Export it to png
+        sf::Image png; png.create(side, side, sf::Color::White);
+        for (std::size_t x = 0; x < side; ++x) {
+            for (std::size_t y = 0; y < side; ++y) {
+                png.setPixel(x, y, img[y * side + x] == inSetColor ? sf::Color::Black : sf::Color::White);
+            }
+        }
+
+        std::stringstream filename;
+        filename << "tmp/fractal_"
+                 << imgId
+                 << "_"
+                 << csvdescription()
+                 << ".png";
+        png.saveToFile(filename.str());
+        ++imgId;
+        #endif
     }
 
     __host__ __device__
-    Color operator()(Index const& index) {
-        const unsigned int x = index % width;
-        const unsigned int y = index / height; // integer division
+    Color operator()(Index const& index)
+    {
+        const unsigned int x = index % side;
+        const unsigned int y = index / side; // integer division
 
-        Complex c(
-            range.first.real() + x / (width - 1.0) * (range.second.real() - range.first.real()),
-            range.first.imag() + y / (height - 1.0) * (range.second.imag() - range.first.imag())
+        const Complex c(
+            range.first.real() + x / (side - Real(1.0)) * (range.second.real() - range.first.real()),
+            range.first.imag() + y / (side - Real(1.0)) * (range.second.imag() - range.first.imag())
         );
 
         Complex z( 0, 0 );
 
         std::size_t iter = 0;
-        for (iter = 0; iter < maxIterations && abs(z) < 2.0; ++iter) {
+        for (iter = 0; iter < maxIterations && abs(z) < Real(2.0); ++iter) {
             z = z * z + c;
         }
 
         return iter == maxIterations ? inSetColor : notInSetColor;
     }
-};
 
-std::ostream& operator<<(std::ostream& out, sf::Time const& t)
-{
-    sf::Int64 micros = t.asMicroseconds();
-    return out << micros << "µs";
-}
-
-int main(int argc, char** argv)
-{
-    sf::Clock clk;
-    const std::size_t WIDTH = 2000;
-    const std::size_t HEIGHT = 2000;
-    const Color inSet = 0xffffff;
-    const Color notInSet = 0x000000;
-    const ComplexRange range ( Complex(-1.72, 1.2), Complex(1.0, -1.2) );
-    const std::size_t iterations = 1000;
-
-    // Create an array on the device
-    thrust::device_vector<Color> deviceImg(WIDTH * HEIGHT);
-
-    // First, load all indexes into deviceImg
-    thrust::sequence(deviceImg.begin(), deviceImg.end());
-
-    // Then, transform the indexes into 'colors'
-    thrust::transform(deviceImg.begin(), deviceImg.end(),
-                      deviceImg.begin(),
-                      Mandelbrot(WIDTH, HEIGHT, inSet, notInSet, range, iterations));
-
-	// Copy the data to the host memory
-    thrust::host_vector<Color> img(deviceImg.begin(), deviceImg.end());
-
-    const sf::Time time = clk.restart();
-
-    std::cout << "fractal computed in " << time << std::endl;
-
-    // Export it to png
-    sf::Image png; png.create(WIDTH, HEIGHT, sf::Color::White);
-    for (std::size_t x = 0; x < WIDTH; ++x) {
-        for (std::size_t y = 0; y < HEIGHT; ++y) {
-            if (img[y * WIDTH + x] == inSet) png.setPixel(x, y, sf::Color::Black);
-        }
+    std::string csvdescription() const 
+    {
+        std::stringstream ss;
+        ss << side << "," 
+           << maxIterations << "," 
+           << range;
+        return ss.str();
     }
 
-    png.saveToFile("fractal.png");
+    std::size_t side, maxIterations;
+    ComplexRange range;
+};
+
+int main(int, char**)
+{
+    // const std::vector<std::size_t> sides = { 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 };
+    // const std::vector<std::size_t> iterations = { 1, 10, 30, 80, 150, 250, 500, 1000, 2000, 8000 };
+    // const std::vector<ComplexRange> ranges = {
+    //     { Complex(-1.72, 1.2), Complex(1.0, -1.2) },
+    //     { Complex(-0.7, 0), Complex(0.3, -1) },
+    //     { Complex(-0.4, -0.5), Complex(0.1, -1) },
+    //     { Complex(-0.4, -0.6), Complex(-0.2, -0.8) },
+    //     { Complex(-0.24, -0.64), Complex(-0.26, -0.66) }
+    // };
+
+    // #ifdef SAVE_IMAGE
+    // const std::size_t repetitions = 1;
+    // #else
+    // const std::size_t repetitions = 4;
+    // #endif
+
+    // for (auto const& side: sides)
+    //     for (auto const& maxIterations: iterations)
+    //         for (auto const& range: ranges)
+    //             stats<Mandelbrot, void>({side, maxIterations, range}, (maxIterations >= 1000 && side >= 2000 ? 1 : repetitions));
+
+    const ComplexRange range ( Complex(-1.72, 1.2), Complex(1.0, -1.2) );
+    stats<Mandelbrot, void>(Mandelbrot(100, 100, range), 1);
 
     return 0;
 }
