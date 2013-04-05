@@ -61,7 +61,7 @@ struct Mandelbrot : public thrust::unary_function<Index, Color>
 
         // Those numbers are really magic....
         if ((side >= 4000 && side < 10000 && maxIterations >= 4000) ||
-            (side >= 10000 && maxIterations >= 2000)) {
+            (side >= 10000 && maxIterations >= 500)) {
 
             const std::size_t step = 1000000;
 
