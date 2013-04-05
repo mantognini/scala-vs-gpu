@@ -97,6 +97,8 @@ object MonteCarlo extends PerformanceTest {
     def computeRatioVector(pointCount: Int): Double = computeRatioGeneric(SequentialVectorFiller)(pointCount)
     def computeRatioParallelVector(pointCount: Int): Double = computeRatioGeneric(ParallelVectorFiller)(pointCount)
 
+    def computeRatioParallelSeqSpecial(pointCount: Int): Double = computeRatioGenericSpecial(ParallelSeqFiller)(pointCount)
+
     def computeRatioGeneric[T <: Filler](filler: T)(pointCount: Int): Double = {
         // Create two uniform random number generators
         val gX = Random
@@ -115,7 +117,20 @@ object MonteCarlo extends PerformanceTest {
         ratio
     }
 
+    def computeRatioGenericSpecial[T <: Filler](filler: T)(pointCount: Int): Double = {
+        def firstApprox(iterCount: Int)(): Double = {
+            0
+        }
+
+        
+
+        0
+    }
+
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
+
+    // 
+    // Par + Seq : First Version
 
     performance of "seq.sequential" in {
         using(counts) in { pointCount => computeRatioSeq(pointCount) }
@@ -147,6 +162,13 @@ object MonteCarlo extends PerformanceTest {
 
     performance of "vector.parallel" in {
         using(counts) in { pointCount => computeRatioParallelVector(pointCount) }
+    }
+
+    //
+    // Par : Second Version
+
+    performance of "seq.parallel.special" in {
+        using(counts) in { pointCount => computeRatioParallelSeqSpecial(pointCount) }
     }
 }
 
