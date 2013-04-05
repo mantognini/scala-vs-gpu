@@ -1,7 +1,9 @@
 import org.scalameter.api._
 import scala.util.{ Random }
-import scala.collection.parallel.immutable.{ ParSeq }
+import scala.collection.parallel.immutable.{ ParSeq, ParRange, ParVector }
+import scala.collection.parallel.mutable.{ ParArray }
 import scala.collection.{ GenSeq }
+import scala.reflect.{ ClassTag }
 import java.io.{ BufferedWriter, FileWriter, File }
 
 case class CSVReporter(filename: String = "data.csv") extends Reporter {
@@ -54,17 +56,46 @@ object MonteCarlo extends PerformanceTest {
         def fill[A](count: Int)(f: => A): GenSeq[A]
     }
 
-    object SequentialFiller extends Filler {
+    object SequentialSeqFiller extends Filler {
         def fill[A](count: Int)(f: => A): GenSeq[A] = Seq.fill[A](count)(f)
     }
 
-    object ParallelFiller extends Filler {
+    object ParallelSeqFiller extends Filler {
         def fill[A](count: Int)(f: => A): GenSeq[A] = ParSeq.fill[A](count)(f)
     }
 
-    def computeRatio(pointCount: Int): Double = computeRatioGeneric(SequentialFiller)(pointCount)
+    object SequentialRangeFiller extends Filler {
+        def fill[A](count: Int)(f: => A): GenSeq[A] = Range(0, count, 1) map { _ => f }
+    }
 
-    def computeRatioParallel(pointCount: Int): Double = computeRatioGeneric(ParallelFiller)(pointCount)
+    object ParallelRangeFiller extends Filler {
+        def fill[A](count: Int)(f: => A): GenSeq[A] = ParRange(0, count, 1, false) map { _ => f }
+    }
+
+    // object SequentialArrayFiller extends Filler {
+    //     def fill[A](count: Int)(f: => A): GenSeq[A] = Array.fill[A](count)(f)
+    // }
+
+    object ParallelArrayFiller extends Filler {
+        def fill[A](count: Int)(f: => A): GenSeq[A] = ParArray.fill[A](count)(f)
+    }
+
+    object SequentialVectorFiller extends Filler {
+        def fill[A](count: Int)(f: => A): GenSeq[A] = Vector.fill[A](count)(f)
+    }
+
+    object ParallelVectorFiller extends Filler {
+        def fill[A](count: Int)(f: => A): GenSeq[A] = ParVector.fill[A](count)(f)
+    }
+
+    def computeRatioSeq(pointCount: Int): Double = computeRatioGeneric(SequentialSeqFiller)(pointCount)
+    def computeRatioParallelSeq(pointCount: Int): Double = computeRatioGeneric(ParallelSeqFiller)(pointCount)
+    def computeRatioRange(pointCount: Int): Double = computeRatioGeneric(SequentialRangeFiller)(pointCount)
+    def computeRatioParallelRange(pointCount: Int): Double = computeRatioGeneric(ParallelRangeFiller)(pointCount)
+    // def computeRatioArray(pointCount: Int): Double = computeRatioGeneric(SequentialArrayFiller)(pointCount)
+    def computeRatioParallelArray(pointCount: Int): Double = computeRatioGeneric(ParallelArrayFiller)(pointCount)
+    def computeRatioVector(pointCount: Int): Double = computeRatioGeneric(SequentialVectorFiller)(pointCount)
+    def computeRatioParallelVector(pointCount: Int): Double = computeRatioGeneric(ParallelVectorFiller)(pointCount)
 
     def computeRatioGeneric[T <: Filler](filler: T)(pointCount: Int): Double = {
         // Create two uniform random number generators
@@ -86,12 +117,36 @@ object MonteCarlo extends PerformanceTest {
 
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
 
-    performance of "sequential" in {
-        using(counts) in { pointCount => computeRatio(pointCount) }
+    performance of "seq.sequential" in {
+        using(counts) in { pointCount => computeRatioSeq(pointCount) }
     }
 
-    performance of "parallel" in {
-        using(counts) in { pointCount => computeRatioParallel(pointCount) }
+    performance of "seq.parallel" in {
+        using(counts) in { pointCount => computeRatioParallelSeq(pointCount) }
+    }
+
+    performance of "range.sequential" in {
+        using(counts) in { pointCount => computeRatioRange(pointCount) }
+    }
+
+    performance of "range.parallel" in {
+        using(counts) in { pointCount => computeRatioParallelRange(pointCount) }
+    }
+
+    // performance of "array.sequential" in {
+    //     using(counts) in { pointCount => computeRatioArray(pointCount) }
+    // }
+
+    performance of "array.parallel" in {
+        using(counts) in { pointCount => computeRatioParallelArray(pointCount) }
+    }
+
+    performance of "vector.sequential" in {
+        using(counts) in { pointCount => computeRatioVector(pointCount) }
+    }
+
+    performance of "vector.parallel" in {
+        using(counts) in { pointCount => computeRatioParallelVector(pointCount) }
     }
 }
 
