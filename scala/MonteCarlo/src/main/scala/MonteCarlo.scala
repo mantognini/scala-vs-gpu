@@ -20,7 +20,7 @@ case class CSVReporter(filename: String = "data.csv") extends Reporter {
         val out = new BufferedWriter(new FileWriter(file, true))
         for (measurement <- result.measurements) {
             out.write(result.context.scope + "," + 
-                      measurement.params.axisData.values.mkString(",") + "," + 
+                      measurement.params.axisData.values.mkString(",") + "," +
                       (measurement.time * 1000).toInt) // convert ms to µs
             out.newLine()
         }
