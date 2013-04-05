@@ -1,38 +1,34 @@
-::Benchmark MonteCarlo.Low Count.computeRatio::
-128,0.009
-256,0.016
-512,0.032
-1024,0.06
-2048,0.123
-4096,0.239
-8192,0.478
-16384,0.956
-32768,1.911
-::Benchmark MonteCarlo.Low Count.computeRatioParallel::
-128,0.744
-256,0.926
-512,0.809
-1024,0.833
-2048,0.877
-4096,1.046
-8192,1.213
-16384,1.831
-32768,3.021
-::Benchmark MonteCarlo.High Count.computeRatio::
-65536,3.831
-589824,35.109
-1114112,165.552
-1638400,352.065
-2162688,685.324
-2686976,675.859
-3211264,1471.936
-3735552,1590.371
-::Benchmark MonteCarlo.High Count.computeRatioParallel::
-65536,5.288
-589824,44.149
-1114112,82.979
-1638400,132.849
-2162688,189.016
-2686976,-3042.435
-3211264,326.298
-3735552,376.213
+MonteCarlo.Low Count.computeRatio,128,10
+MonteCarlo.Low Count.computeRatio,256,18
+MonteCarlo.Low Count.computeRatio,512,32
+MonteCarlo.Low Count.computeRatio,1024,61
+MonteCarlo.Low Count.computeRatio,2048,123
+MonteCarlo.Low Count.computeRatio,4096,244
+MonteCarlo.Low Count.computeRatio,8192,456
+MonteCarlo.Low Count.computeRatio,16384,918
+MonteCarlo.Low Count.computeRatio,32768,2277
+MonteCarlo.Low Count.computeRatioParallel,128,882
+MonteCarlo.Low Count.computeRatioParallel,256,886
+MonteCarlo.Low Count.computeRatioParallel,512,766
+MonteCarlo.Low Count.computeRatioParallel,1024,729
+MonteCarlo.Low Count.computeRatioParallel,2048,731
+MonteCarlo.Low Count.computeRatioParallel,4096,884
+MonteCarlo.Low Count.computeRatioParallel,8192,1308
+MonteCarlo.Low Count.computeRatioParallel,16384,1597
+MonteCarlo.Low Count.computeRatioParallel,32768,2647
+MonteCarlo.High Count.computeRatio,65536,3650
+MonteCarlo.High Count.computeRatio,589824,33812
+MonteCarlo.High Count.computeRatio,1114112,63739
+MonteCarlo.High Count.computeRatio,1638400,93595
+MonteCarlo.High Count.computeRatio,2162688,123036
+MonteCarlo.High Count.computeRatio,2686976,152828
+MonteCarlo.High Count.computeRatio,3211264,182380
+MonteCarlo.High Count.computeRatio,3735552,212611
+MonteCarlo.High Count.computeRatioParallel,65536,4413
+MonteCarlo.High Count.computeRatioParallel,589824,35590
+MonteCarlo.High Count.computeRatioParallel,1114112,66907
+MonteCarlo.High Count.computeRatioParallel,1638400,98442
+MonteCarlo.High Count.computeRatioParallel,2162688,128651
+MonteCarlo.High Count.computeRatioParallel,2686976,159941
+MonteCarlo.High Count.computeRatioParallel,3211264,191763
+MonteCarlo.High Count.computeRatioParallel,3735552,222783
