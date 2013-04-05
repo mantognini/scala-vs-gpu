@@ -43,18 +43,54 @@ struct Mandelbrot : public thrust::unary_function<Index, Color>
     // Perform the set computation
     void operator()() const
     {
-        // Create an array on the device
+        // Create an array on the host system
         const std::size_t size = side * side;
-        thrust::device_vector<Color> deviceImg(size);
+        thrust::host_vector<Color> img(size);
 
-        // Then, transform the indexes into 'colors'
-        thrust::transform(thrust::counting_iterator<Index>(0),
-                          thrust::counting_iterator<Index>(size),
-                          deviceImg.begin(),
-                          *this); // apply op()(Index)
+        /*
+         * WARNING : limited memory
+         *
+         * If the computation is too intense (# iterations) it seems the device runs
+         * out of memory faster..
+         *
+         * Here a naive workaround is implemented : if the size of the set and the resolution
+         * is too high then the work is splitted.
+         *
+         * A better implementation would take account of the free memory on the GPU.
+         */
 
-        // Copy the data to the host memory
-        thrust::host_vector<Color> img = deviceImg;
+        // Those numbers are really magic....
+        if ((side >= 4000 && side < 10000 && maxIterations >= 4000) ||
+            (side >= 10000 && maxIterations >= 2000)) {
+
+            const std::size_t step = 1000000;
+
+            // Create an array on the device
+            thrust::device_vector<Color> deviceImg(step);
+
+            for (std::size_t i = 0; i < size; i += step) {
+                // Then, transform the indexes into 'colors'
+                thrust::transform(thrust::counting_iterator<Index>(i),
+                                  thrust::counting_iterator<Index>(std::min(i + step, size)),
+                                  deviceImg.begin(),
+                                  *this); // apply op()(Index)
+
+                // Copy the data to the host memory
+                thrust::copy(deviceImg.begin(), deviceImg.end(), img.begin() + i);
+            }
+        } else {
+            // Create an array on the device
+            thrust::device_vector<Color> deviceImg(size);
+
+            // Then, transform the indexes into 'colors'
+            thrust::transform(thrust::counting_iterator<Index>(0),
+                              thrust::counting_iterator<Index>(size),
+                              deviceImg.begin(),
+                              *this); // apply op()(Index)
+            
+            // Copy the data to the host memory
+            thrust::copy(deviceImg.begin(), deviceImg.end(), img.begin());
+        }
 
         #ifdef SAVE_IMAGE
         static std::size_t imgId = 0;
