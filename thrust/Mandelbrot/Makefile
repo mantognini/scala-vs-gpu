@@ -1,4 +1,4 @@
-all: release release_si
+all: release release_si debug
 
 bindir:
 	mkdir -p bin/ tmp/
