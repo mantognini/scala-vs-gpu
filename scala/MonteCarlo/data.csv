@@ -1,34 +1,32 @@
-MonteCarlo.Low Count.computeRatio,128,10
-MonteCarlo.Low Count.computeRatio,256,18
-MonteCarlo.Low Count.computeRatio,512,32
-MonteCarlo.Low Count.computeRatio,1024,61
-MonteCarlo.Low Count.computeRatio,2048,123
-MonteCarlo.Low Count.computeRatio,4096,244
-MonteCarlo.Low Count.computeRatio,8192,456
-MonteCarlo.Low Count.computeRatio,16384,918
-MonteCarlo.Low Count.computeRatio,32768,2277
-MonteCarlo.Low Count.computeRatioParallel,128,882
-MonteCarlo.Low Count.computeRatioParallel,256,886
-MonteCarlo.Low Count.computeRatioParallel,512,766
-MonteCarlo.Low Count.computeRatioParallel,1024,729
-MonteCarlo.Low Count.computeRatioParallel,2048,731
-MonteCarlo.Low Count.computeRatioParallel,4096,884
-MonteCarlo.Low Count.computeRatioParallel,8192,1308
-MonteCarlo.Low Count.computeRatioParallel,16384,1597
-MonteCarlo.Low Count.computeRatioParallel,32768,2647
-MonteCarlo.High Count.computeRatio,65536,3650
-MonteCarlo.High Count.computeRatio,589824,33812
-MonteCarlo.High Count.computeRatio,1114112,63739
-MonteCarlo.High Count.computeRatio,1638400,93595
-MonteCarlo.High Count.computeRatio,2162688,123036
-MonteCarlo.High Count.computeRatio,2686976,152828
-MonteCarlo.High Count.computeRatio,3211264,182380
-MonteCarlo.High Count.computeRatio,3735552,212611
-MonteCarlo.High Count.computeRatioParallel,65536,4413
-MonteCarlo.High Count.computeRatioParallel,589824,35590
-MonteCarlo.High Count.computeRatioParallel,1114112,66907
-MonteCarlo.High Count.computeRatioParallel,1638400,98442
-MonteCarlo.High Count.computeRatioParallel,2162688,128651
-MonteCarlo.High Count.computeRatioParallel,2686976,159941
-MonteCarlo.High Count.computeRatioParallel,3211264,191763
-MonteCarlo.High Count.computeRatioParallel,3735552,222783
+sequential,128,11
+sequential,256,18
+sequential,512,33
+sequential,1024,63
+sequential,2048,116
+sequential,4096,230
+sequential,8192,454
+sequential,16384,909
+sequential,32768,2475
+sequential,65536,5185
+sequential,131072,10697
+sequential,262144,20866
+sequential,524288,29672
+sequential,1048576,59185
+sequential,2097152,118600
+sequential,4194304,237169
+parallel,128,1057
+parallel,256,915
+parallel,512,955
+parallel,1024,810
+parallel,2048,788
+parallel,4096,915
+parallel,8192,1185
+parallel,16384,1704
+parallel,32768,2586
+parallel,65536,4435
+parallel,131072,8213
+parallel,262144,16338
+parallel,524288,31349
+parallel,1048576,62468
+parallel,2097152,124279
+parallel,4194304,248439
