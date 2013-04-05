@@ -5,6 +5,7 @@ import scala.collection.parallel.mutable.{ ParArray }
 import scala.collection.{ GenSeq }
 import scala.reflect.{ ClassTag }
 import java.io.{ BufferedWriter, FileWriter, File }
+import java.lang.{ Runtime }
 
 case class CSVReporter(filename: String = "data.csv") extends Reporter {
     val file = new File(filename)
@@ -119,12 +120,35 @@ object MonteCarlo extends PerformanceTest {
 
     def computeRatioGenericSpecial[T <: Filler](filler: T)(pointCount: Int): Double = {
         def firstApprox(iterCount: Int)(): Double = {
-            0
+            val randX, randY = Random
+
+            var i = 0
+            var sum = 0.0 // sum will hold the approximation of π
+            while (i < iterCount) {
+                i += 1
+
+                val x = randX.nextDouble()
+                val y = randY.nextDouble()
+                if (x * x + y * y <= 1) sum += 1
+            }
+
+            sum *= 4
+            sum /= iterCount
+
+            sum
         }
 
-        
+        // Config
+        val cores = Runtime.getRuntime().availableProcessors()
+        val iterCount = pointCount / cores
 
-        0
+        // Get N approximations
+        val approxes = filler.fill(cores)(firstApprox(iterCount))
+
+        // Compute the average
+        val π = approxes.sum / approxes.size
+
+        π
     }
 
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
