@@ -21,7 +21,7 @@ case class CSVReporter(filename: String = "data.csv") extends Reporter {
         for (measurement <- result.measurements) {
             out.write(result.context.scope + "," + 
                       measurement.params.axisData.values.mkString(",") + "," + 
-                      measurement.time)
+                      (measurement.time * 1000).toInt) // convert ms to µs
             out.newLine()
         }
         out.close()
