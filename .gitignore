@@ -18,3 +18,5 @@ bin/
 fractal.png
 benchmark.txt
 tmp
+.classpath
+.project
