@@ -60,7 +60,10 @@ object Mandelbrot {
                 val indexes = 0 until (side * side)
 
                 val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
-                val img = (if (parallel) indexes.par else indexes) map generator.computeElement
+                val img = Array.ofDim[Int](side * side) 
+                (if (parallel) indexes.par else indexes) foreach { idx =>
+                  img(idx) = generator.computeElement(idx)
+                }
 
                 img
             }
