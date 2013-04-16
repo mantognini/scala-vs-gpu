@@ -1,4 +1,4 @@
-name := "mandelbrot"
+name := "montecarlo"
 
 scalaVersion := "2.10.0"
 
