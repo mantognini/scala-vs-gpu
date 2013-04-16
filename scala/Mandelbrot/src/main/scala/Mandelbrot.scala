@@ -3,19 +3,8 @@ import java.awt.image.{ BufferedImage }
 import java.io.{ File }
 import javax.imageio.{ ImageIO }
 
-// Minimal complex class for this application
-case class Complex(val r: Double, val i: Double) {
-    def *(z: Complex) = Complex(r * z.r - i * z.i, r * z.i + i * z.r)
-
-    def +(z: Complex) = Complex(r + z.r, i + z.i)
-
-    def abs: Double = sqrt(r * r + i * i)
-
-    override def toString(): String = "(" + r + "; " + i + ")"
-}
-
-case class ComplexRange(val first: Complex, val second: Complex) {
-    override def toString(): String =  "{" + first + "; " + second + "}"  
+case class ComplexRange(val first_r: Double, val first_i: Double, val second_r: Double, val second_i: Double) {
+    override def toString(): String =  "{ (" + first_r + ";" + first_i + ") ; (" + second_r + ";" + second_i + ") }"  
 }
 
 case class Color(val rgb: Int)
@@ -27,16 +16,17 @@ case class Mandelbrot(val width: Int, val height: Int,
         val x = index % width
         val y = index / height
 
-        val c = Complex(
-            range.first.r + x / (width - 1.0) * (range.second.r - range.first.r),
-            range.first.i + y / (height - 1.0) * (range.second.i - range.first.i)
-        )
+        val c_r = range.first_r + x / (width - 1.0) * (range.second_r - range.first_r)
+        val c_i = range.first_i + y / (height - 1.0) * (range.second_i - range.first_i)
 
-        var z = Complex(0, 0)
+        var z_r, z_i = 0.0
 
         var iter = 0
-        while (iter < maxIteration && z.abs < 2.0) {
-            z = z * z + c
+        while (iter < maxIteration && z_r * z_r + z_i * z_i < 4.0) {
+        	// z = z * z + c
+        	val tmp = z_r;
+			z_r = z_r * z_r - z_i * z_i + c_r
+			z_i = 2 * tmp * z_i + c_i
             iter = iter + 1
         }
 
@@ -52,11 +42,11 @@ object Mandelbrot {
         val sides = List( 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 )
         val iterations = List( 1, 10, 30, 80, 150, 250, 500, 1000, 2000, 8000 )
         val ranges = List(
-            ComplexRange( Complex(-1.72, 1.2), Complex(1.0, -1.2) ),
-            ComplexRange( Complex(-0.7, 0), Complex(0.3, -1) ),
-            ComplexRange( Complex(-0.4, -0.5), Complex(0.1, -1) ),
-            ComplexRange( Complex(-0.4, -0.6), Complex(-0.2, -0.8) ),
-            ComplexRange( Complex(-0.24, -0.64), Complex(-0.26, -0.66) )
+            ComplexRange( -1.72, 1.2, 1.0, -1.2 ),
+            ComplexRange( -0.7, 0, 0.3, -1 ),
+            ComplexRange( -0.4, -0.5, 0.1, -1 ),
+            ComplexRange( -0.4, -0.6, -0.2, -0.8 ),
+            ComplexRange( -0.24, -0.64, -0.26, -0.66 )
         )
         val parallels = List(false, true)
 
