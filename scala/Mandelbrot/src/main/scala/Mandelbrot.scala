@@ -7,12 +7,10 @@ case class ComplexRange(val first_r: Double, val first_i: Double, val second_r: 
     override def toString(): String =  "{ (" + first_r + ";" + first_i + ") ; (" + second_r + ";" + second_i + ") }"  
 }
 
-case class Color(val rgb: Int)
-
 case class Mandelbrot(val width: Int, val height: Int, 
                       val range: ComplexRange, val maxIteration: Int, 
-                      val inSet: Color, val notInSet: Color) {
-    def computeElement(index: Int): Color = {
+                      val inSet: Int, val notInSet: Int) {
+    def computeElement(index: Int): Int = {
         val x = index % width
         val y = index / height
 
@@ -50,8 +48,8 @@ object Mandelbrot {
         )
         val parallels = List(false, true)
 
-        val inSet = Color(0x000000)
-        val notInSet = Color(0xffffff)
+        val inSet = 0x000000
+        val notInSet = 0xffffff
 
         var imgId = 0;
 
@@ -102,7 +100,7 @@ object Mandelbrot {
                 val x = index % side
                 val y = index / side
 
-                png.setRGB(x, y, color.rgb)
+                png.setRGB(x, y, color)
             }
 
             val outputfile = new File("tmp/fractal_" + imgId + "_" + csvdescription + ".png");
