@@ -94,12 +94,13 @@ object MonteCarlo extends PerformanceTest {
     
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
-    val bools = Gen.enumeration("inside.par")(true, false)
+    val innerpars = Gen.enumeration("inner parallelism")(true, false)
+    val outerpars = Gen.enumeration("outer parallelism")(true, false)
     
     val params = for (count <- counts;
       parallelism <- parallelisms;
-      innerpar <- bools;
-      outerpar <- bools) yield {
+      innerpar <- innerpars;
+      outerpar <- outerpars) yield {
     	(count, parallelism, outerpar, innerpar)
     }
 
