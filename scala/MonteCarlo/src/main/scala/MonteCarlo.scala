@@ -46,7 +46,7 @@ object MonteCarlo extends PerformanceTest {
     )*/
 
     lazy val reporter = Reporter.Composite(
-        ChartReporter(ChartFactory.XYLine()), 
+//        ChartReporter(ChartFactory.XYLine()), 
         CSVReporter(),
         LoggingReporter()
     )
