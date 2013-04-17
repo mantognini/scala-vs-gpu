@@ -52,147 +52,56 @@ object MonteCarlo extends PerformanceTest {
     )
 
     lazy val persistor = Persistor.None
-
-    trait Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A]
-    }
-
-    object SequentialSeqFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = Seq.fill[A](count)(f)
-    }
-
-    object ParallelSeqFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = ParSeq.fill[A](count)(f)
-    }
-
-    object SequentialRangeFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = Range(0, count, 1) map { _ => f }
-    }
-
-    object ParallelRangeFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = ParRange(0, count, 1, false) map { _ => f }
-    }
-
-    // object SequentialArrayFiller extends Filler {
-    //     def fill[A](count: Int)(f: => A): GenSeq[A] = Array.fill[A](count)(f)
-    // }
-
-    object ParallelArrayFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = ParArray.fill[A](count)(f)
-    }
-
-    object SequentialVectorFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = Vector.fill[A](count)(f)
-    }
-
-    object ParallelVectorFiller extends Filler {
-        def fill[A](count: Int)(f: => A): GenSeq[A] = ParVector.fill[A](count)(f)
-    }
-
-    def computeRatioSeq(pointCount: Int): Double = computeRatioGeneric(SequentialSeqFiller)(pointCount)
-    def computeRatioParallelSeq(pointCount: Int): Double = computeRatioGeneric(ParallelSeqFiller)(pointCount)
-    def computeRatioRange(pointCount: Int): Double = computeRatioGeneric(SequentialRangeFiller)(pointCount)
-    def computeRatioParallelRange(pointCount: Int): Double = computeRatioGeneric(ParallelRangeFiller)(pointCount)
-    // def computeRatioArray(pointCount: Int): Double = computeRatioGeneric(SequentialArrayFiller)(pointCount)
-    def computeRatioParallelArray(pointCount: Int): Double = computeRatioGeneric(ParallelArrayFiller)(pointCount)
-    def computeRatioVector(pointCount: Int): Double = computeRatioGeneric(SequentialVectorFiller)(pointCount)
-    def computeRatioParallelVector(pointCount: Int): Double = computeRatioGeneric(ParallelVectorFiller)(pointCount)
-
-    def computeRatioParallelSeqSpecial(pointCount: Int): Double = computeRatioGenericSpecial(ParallelSeqFiller)(pointCount)
-
-    def computeRatioGeneric[T <: Filler](filler: T)(pointCount: Int): Double = {
-        // Create two uniform random number generators
-        val gX = Random
-        val gY = Random
-        def randomPoint: (Double, Double) = (gX.nextDouble, gY.nextDouble)
-
-        // Create some random point in the square
-        val points = filler.fill(pointCount)(randomPoint)
-
-        // Count point inside the circle
-        val pointInCircleCount = points count { case (x, y) => x * x + y * y <= 1 }
-
-        // π/4 = .785398163
-        val ratio = pointInCircleCount.toDouble / pointCount.toDouble
-
-        ratio
-    }
-
-    def computeRatioGenericSpecial[T <: Filler](filler: T)(pointCount: Int): Double = {
-        def firstApprox(iterCount: Int)(): Double = {
-            val randX, randY = Random
-
-            var i = 0
-            var sum = 0.0 // sum will hold the approximation of π
-            while (i < iterCount) {
-                i += 1
-
-                val x = randX.nextDouble()
-                val y = randY.nextDouble()
-                if (x * x + y * y <= 1) sum += 1
-            }
-
-            sum *= 4
-            sum /= iterCount
-
-            sum
+    
+    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, par: Boolean): Double = {
+    	// Config
+        val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
+        
+        val gens = for (i <- 0 until parallelismLevel) yield {
+          val genx = new Random()
+          val geny = new Random()
+          (genx,geny)
         }
-
-        // Config
-        val cores = Runtime.getRuntime().availableProcessors()
-        val iterCount = pointCount / cores
-
-        // Get N approximations
-        val approxes = filler.fill(cores)(firstApprox(iterCount))
-
+        
+        val insideCount = gens.par.aggregate(0.0)({
+		  (acc, genxy) => {
+		    val range1 = 0 until iterCount
+		    val range = if (par) range1.par else range1
+		    
+		    val inside = range.count {
+		      i =>
+		        val x = genxy._1.nextDouble
+		        val y = genxy._2.nextDouble
+		        
+		        x * x + y * y <= 1.0
+		    }
+		    
+		    acc + inside
+		  }
+		},
+		_ + _)
+        
         // Compute the average
-        val π = approxes.sum / approxes.size
+        val π = 4.0 * insideCount / pointCount
+
+//        println("π is ~" + π + " for (" + pointCount + ", " + parallelismLevel + ", " + par + ") \t" + 
+//            iterCount + " * " + parallelismLevel + " = " + (iterCount * parallelismLevel) + " VS " + pointCount)
 
         π
     }
-
+    
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
-
-    // 
-    // Par + Seq : First Version
-
-    performance of "seq.sequential" in {
-        using(counts) in { pointCount => computeRatioSeq(pointCount) }
+    val parallelisms = Gen.exponential("parallelism level")(1, 128, 2)
+    val pars = Gen.enumeration("inside.par")(true, false)
+    
+    val params = for (count <- counts;
+      parallelism <- parallelisms;
+      par <- pars) yield {
+    	(count, parallelism, par)
     }
 
-    performance of "seq.parallel" in {
-        using(counts) in { pointCount => computeRatioParallelSeq(pointCount) }
-    }
-
-    performance of "range.sequential" in {
-        using(counts) in { pointCount => computeRatioRange(pointCount) }
-    }
-
-    performance of "range.parallel" in {
-        using(counts) in { pointCount => computeRatioParallelRange(pointCount) }
-    }
-
-    // performance of "array.sequential" in {
-    //     using(counts) in { pointCount => computeRatioArray(pointCount) }
-    // }
-
-    performance of "array.parallel" in {
-        using(counts) in { pointCount => computeRatioParallelArray(pointCount) }
-    }
-
-    performance of "vector.sequential" in {
-        using(counts) in { pointCount => computeRatioVector(pointCount) }
-    }
-
-    performance of "vector.parallel" in {
-        using(counts) in { pointCount => computeRatioParallelVector(pointCount) }
-    }
-
-    //
-    // Par : Second Version
-
-    performance of "seq.parallel.special" in {
-        using(counts) in { pointCount => computeRatioParallelSeqSpecial(pointCount) }
+    performance of "montecarlo" in {
+        using(params) in { case (pointCount, parallelismLevel, par) => computeRatioParallel(pointCount, parallelismLevel, par) }
     }
 }
 
