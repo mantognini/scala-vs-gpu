@@ -53,20 +53,22 @@ object MonteCarlo extends PerformanceTest {
 
     lazy val persistor = Persistor.None
     
-    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, par: Boolean): Double = {
+    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Boolean, innerpar: Boolean): Double = {
     	// Config
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
-        val gens = for (i <- 0 until parallelismLevel) yield {
+        val gens1 = for (i <- 0 until parallelismLevel) yield {
           val genx = new Random()
           val geny = new Random()
           (genx,geny)
         }
         
-        val insideCount = gens.par.aggregate(0.0)({
+        val gens = if (outerpar) gens1.par else gens1
+        
+        val insideCount = gens.aggregate(0.0)({
 		  (acc, genxy) => {
 		    val range1 = 0 until iterCount
-		    val range = if (par) range1.par else range1
+		    val range = if (innerpar) range1.par else range1
 		    
 		    val inside = range.count {
 		      i =>
@@ -91,17 +93,20 @@ object MonteCarlo extends PerformanceTest {
     }
     
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
-    val parallelisms = Gen.exponential("parallelism level")(1, 128, 2)
-    val pars = Gen.enumeration("inside.par")(true, false)
+    val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
+    val bools = Gen.enumeration("inside.par")(true, false)
     
     val params = for (count <- counts;
       parallelism <- parallelisms;
-      par <- pars) yield {
-    	(count, parallelism, par)
+      innerpar <- bools;
+      outerpar <- bools) yield {
+    	(count, parallelism, outerpar, innerpar)
     }
 
     performance of "montecarlo" in {
-        using(params) in { case (pointCount, parallelismLevel, par) => computeRatioParallel(pointCount, parallelismLevel, par) }
+        using(params) in { case (pointCount, parallelismLevel, outerpar, innerpar) => 
+          	computeRatioParallel(pointCount, parallelismLevel, outerpar, innerpar) 
+        }
     }
 }
 
