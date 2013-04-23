@@ -92,6 +92,8 @@ object MonteCarlo extends PerformanceTest {
         π
     }
     
+    // TODO config pc.tasksupport
+    
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
     val innerpars = Gen.enumeration("inner parallelism")(true, false)
