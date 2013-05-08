@@ -80,7 +80,6 @@ public:
         // That's it
     }
 
-private:
     double x, y;
 };
 
