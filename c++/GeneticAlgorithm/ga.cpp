@@ -1,4 +1,6 @@
 
+#include "Random/Uniform.hpp"
+
 #include <vector>
 #include <functional>
 
@@ -61,23 +63,44 @@ private:
 
 
 // TODO implement this class
-class BooleanExpression
+class Polynomial
 {
 public:
-    /* data */
+    Polynomial();
+};
+
+class Params
+{
+public:
+    Params(double x, double y)
+        : x(x), y(y) {
+        // That's it
+    }
+
+private:
+    double x, y;
 };
 
 int main(int, char const**)
 {
+    // Evaluation range
+    double const RANGE_MIN = -100000;
+    double const RANGE_MAX =  100000;
+
+    auto randomParameter = [&]() -> double {
+        return uniform(RANGE_MIN, RANGE_MAX);
+    };
+
     // Initialise a population of boolean expressions
     unsigned int const SIZE = 100;
-    auto generator = []() -> BooleanExpression* {
-    	// TODO add randomness
-        return new BooleanExpression();
+
+    auto generator = [&]() -> Params* {
+        return new Params(randomParameter(), randomParameter());
     };
-    Population<BooleanExpression> pop(SIZE, generator);
 
+    Population<Params> pop(SIZE, generator);
 
+    //
 
 
     return 0;
