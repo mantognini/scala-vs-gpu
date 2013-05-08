@@ -26,7 +26,8 @@ public:
      * Ctor
      *
      * @param size size of the population
-     * @param generator Generate new Entity randomly; the ownership of those objects is transfered to this Population
+     * @param generator Generate new Entity randomly;
+     *        the ownership of those objects is transfered to this Population
      */
     Population(unsigned int size, Generator generator, Evaluator evaluator)
         : generator(generator)
