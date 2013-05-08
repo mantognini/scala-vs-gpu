@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <functional>
+#include <tuple>
 
 
 typedef double Real;
@@ -22,7 +23,7 @@ public:
 public:
     // Public API
 
-    /*
+    /*!
      * Ctor
      *
      * @param size size of the population
@@ -75,7 +76,23 @@ private:
 class Polynomial
 {
 public:
-    Polynomial();
+    // Types Aliases
+    typedef std::tuple<Real, Real, Real> Power; // (px, py, a) -> a * x^px * y^py
+    typedef std::vector<Power> Coefficients;
+
+public:
+    /*!
+     * Ctor
+     *
+     * @param a coefficients
+     */
+    Polynomial(Coefficients const& a)
+    : a(a) {
+        // That's it
+    }
+
+private:
+    Coefficients const& a;
 };
 
 class Params
