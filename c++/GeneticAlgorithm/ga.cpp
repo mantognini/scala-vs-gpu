@@ -4,6 +4,11 @@
 #include <vector>
 #include <functional>
 
+
+typedef double Real;
+
+
+
 template <typename E>
 class Population
 {
@@ -11,7 +16,7 @@ public:
     // Type Aliases
 
     typedef typename std::function<E*()> Generator;
-    typedef typename std::function<double(E const&)> Evaluator;
+    typedef typename std::function<Real(E const&)> Evaluator;
     typedef typename std::vector<E*> Pop;
 
 public:
@@ -65,7 +70,7 @@ private:
 };
 
 
-// TODO implement this class
+
 class Polynomial
 {
 public:
@@ -75,22 +80,22 @@ public:
 class Params
 {
 public:
-    Params(double x, double y)
+    Params(Real x, Real y)
         : x(x), y(y) {
         // That's it
     }
 
-    double x, y;
+    Real x, y;
 };
 
 int main(int, char const**)
 {
     // Evaluation range
-    double const RANGE_MIN = -100000;
-    double const RANGE_MAX =  100000;
+    Real const RANGE_MIN = -100000;
+    Real const RANGE_MAX =  100000;
 
     // Create a random parameter in the evaluation range
-    auto randomParameter = [&]() -> double {
+    auto randomParameter = [&]() -> Real {
         return uniform(RANGE_MIN, RANGE_MAX);
     };
 
@@ -100,7 +105,7 @@ int main(int, char const**)
     };
 
     // Evaluator; the closer to 0 the better
-    auto evaluator = [&](Params const& p) -> double {
+    auto evaluator = [&](Params const& p) -> Real {
         return 0; // TODO
     };
 
