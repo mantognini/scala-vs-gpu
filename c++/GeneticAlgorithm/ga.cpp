@@ -21,7 +21,7 @@ public:
      * @param generator Generate new Entity randomly; the ownership of those objects is transfered to this Population
      */
     Population(unsigned int size, EntityGenerator generator)
-    : generator(generator) {
+        : generator(generator) {
         initPop(size);
     }
 
@@ -35,7 +35,7 @@ public:
 private:
     // Private methods
 
-	/// Initialise the population
+    /// Initialise the population
     void initPop(unsigned int size) {
         deluge();
 
@@ -46,11 +46,11 @@ private:
 
     /// Clear the population completly
     void deluge() {
-    	for (auto& e: pop) {
-    		delete e;
-    		e = nullptr;
-    	}
-    	pop.clear();
+        for (auto& e: pop) {
+            delete e;
+            e = nullptr;
+        }
+        pop.clear();
     }
 
 private:
