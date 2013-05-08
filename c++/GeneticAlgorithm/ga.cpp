@@ -90,11 +90,12 @@ int main(int, char const**)
     double const RANGE_MIN = -100000;
     double const RANGE_MAX =  100000;
 
+    // Create a random parameter in the evaluation range
     auto randomParameter = [&]() -> double {
         return uniform(RANGE_MIN, RANGE_MAX);
     };
 
-    // Generator; random parameters
+    // Generator; random parameters in [MIN, MAX] x [MIN, MAX]
     auto generator = [&]() -> Params* {
         return new Params(randomParameter(), randomParameter());
     };
