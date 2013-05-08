@@ -10,7 +10,8 @@ class Population
 public:
     // Type Aliases
 
-    typedef typename std::function<E*()> EntityGenerator;
+    typedef typename std::function<E*()> Generator;
+    typedef typename std::function<double(E const&)> Evaluator;
     typedef typename std::vector<E*> Pop;
 
 public:
@@ -22,8 +23,9 @@ public:
      * @param size size of the population
      * @param generator Generate new Entity randomly; the ownership of those objects is transfered to this Population
      */
-    Population(unsigned int size, EntityGenerator generator)
-        : generator(generator) {
+    Population(unsigned int size, Generator generator, Evaluator evaluator)
+        : generator(generator)
+        , evaluator(evaluator) {
         initPop(size);
     }
 
@@ -58,7 +60,8 @@ private:
 private:
     // Data
     Pop pop;
-    EntityGenerator generator;
+    Generator generator;
+    Evaluator evaluator;
 };
 
 
@@ -91,16 +94,19 @@ int main(int, char const**)
         return uniform(RANGE_MIN, RANGE_MAX);
     };
 
-    // Initialise a population of boolean expressions
-    unsigned int const SIZE = 100;
-
+    // Generator; random parameters
     auto generator = [&]() -> Params* {
         return new Params(randomParameter(), randomParameter());
     };
 
-    Population<Params> pop(SIZE, generator);
+    // Evaluator; the closer to 0 the better
+    auto evaluator = [&](Params const& p) -> double {
+        return 0; // TODO
+    };
 
-    //
+    // Create the population
+    unsigned int const SIZE = 100;
+    Population<Params> pop(SIZE, generator, evaluator);
 
 
     return 0;
