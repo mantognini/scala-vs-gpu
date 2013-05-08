@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <functional>
+#include <algorithm>
+#include <numeric>
 #include <tuple>
 
 
@@ -50,9 +52,8 @@ private:
     void initPop(unsigned int size) {
         deluge();
 
-        for (unsigned int i = 0; i < size; ++i) {
-            pop.push_back( generator() );
-        }
+        pop.resize(size, nullptr);
+        std::generate(pop.begin(), pop.end(), generator);
     }
 
     /// Clear the population completly
