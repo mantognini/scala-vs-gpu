@@ -20,9 +20,9 @@ class Population
 public:
     // Type Aliases
 
-    typedef typename std::function<E*()> Generator;
+    typedef typename std::function<E()> Generator;
     typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
-    typedef typename std::vector<E*> Pop;
+    typedef typename std::vector<E> Pop;
 
 public:
     // Public API
@@ -56,16 +56,12 @@ private:
     void initPop(unsigned int size) {
         deluge();
 
-        pop.resize(size, nullptr);
+        pop.resize(size);
         std::generate(pop.begin(), pop.end(), generator);
     }
 
     /// Clear the population completly
     void deluge() {
-        for (auto& e: pop) {
-            delete e;
-            e = nullptr;
-        }
         pop.clear();
     }
 
@@ -91,8 +87,8 @@ int main(int, char const**)
     Real constexpr MIN_X = 9, MAX_X = 30, MIN_Y = 7, MAX_Y = 30;
 
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-    auto generator = []() -> Params* {
-        return new Params(uniform(MIN_X, MAX_X), uniform(MIN_Y, MAX_Y));
+    auto generator = []() -> Params {
+        return Params(uniform(MIN_X, MAX_X), uniform(MIN_Y, MAX_Y));
     };
 
     // Evaluator; the biggest the better
