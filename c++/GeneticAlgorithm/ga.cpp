@@ -73,13 +73,15 @@ private:
 };
 
 
+typedef std::tuple<Real, Real> Params;
+
 
 class Polynomial
 {
 public:
     // Types Aliases
-    typedef std::tuple<Real, Real, Real> Power; // (px, py, a) -> a * x^px * y^py
-    typedef std::vector<Power> Coefficients;
+    typedef std::tuple<Real, Real, Real> Term; // (px, py, a) -> a * x^px * y^py
+    typedef std::vector<Term> Terms;
 
 public:
     /*!
@@ -87,24 +89,18 @@ public:
      *
      * @param a coefficients
      */
-    Polynomial(Coefficients const& a)
-    : a(a) {
+    Polynomial(Terms const& ts)
+    : ts(ts) {
         // That's it
+    }
+
+    Real evaluate(Params const& ps) const {
+        // TODO
+        return 0;
     }
 
 private:
-    Coefficients const& a;
-};
-
-class Params
-{
-public:
-    Params(Real x, Real y)
-        : x(x), y(y) {
-        // That's it
-    }
-
-    Real x, y;
+    Terms const& ts;
 };
 
 int main(int, char const**)
@@ -124,7 +120,7 @@ int main(int, char const**)
     };
 
     // Evaluator; the closer to 0 the better
-    auto evaluator = [&](Params const& p) -> Real {
+    auto evaluator = [&](Params const& ps) -> Real {
         return 0; // TODO
     };
 
