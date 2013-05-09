@@ -1,11 +1,13 @@
 
 #include "Random/Uniform.hpp"
+#include "mapreduce.hpp"
 
 #include <vector>
 #include <functional>
 #include <algorithm>
 #include <numeric>
 #include <tuple>
+#include <cmath>
 
 
 typedef double Real;
@@ -95,8 +97,26 @@ public:
     }
 
     Real evaluate(Params const& ps) const {
-        // TODO
-        return 0;
+        Real x, y;
+        std::tie(x, y) = ps;
+
+        auto mapper = [&](Term const& t) -> Real {
+            Real a, px, py;
+            std::tie(a, px, py) = t;
+            return a * std::pow(x, px) * std::pow(y, py);
+        };
+
+        auto reducer = [](Real sum, Real term) {
+            return sum + term;
+        };
+
+        return mapreduce<Term, Real, Terms::const_iterator>(
+                   ts.begin(),
+                   ts.end(),
+                   mapper,
+                   reducer,
+                   Real(0)
+               );
     }
 
 private:
