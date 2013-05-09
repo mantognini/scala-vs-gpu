@@ -50,13 +50,73 @@ public:
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     E run() {
-        // TODO
+
+        // Step 1.
+        // -------
+        //
+        // Generate a population
+
+
+
+        // Step 2.
+        // -------
+        //
+        // Evaluate the initial population
+
+
+        bool running = true;
+        do {
+
+            // Step 3.
+            // -------
+            //
+            // Remove the worse K individuals
+
+
+
+            // Step 4.
+            // -------
+            //
+            // Mutate M individuals of the population
+
+
+
+            // Step 5.
+            // -------
+            //
+            // Create CO new individuals with CrossOver
+
+
+
+            // Step 6.
+            // -------
+            //
+            // Generate N new individuals randomly
+
+
+
+            // Step 7.
+            // -------
+            //
+            // Evaluate the current population
+
+
+
+            // Step 8.
+            // -------
+            //
+            // Goto Step 3 if the population is not stable yet
+
+
+        } while(running);
+
+
+        // Step 9.
+        // -------
+        //
+        // Identify the best individual from the current population
+
         return E();
-    }
-
-
-
-
     }
 
 private:
