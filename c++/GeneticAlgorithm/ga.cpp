@@ -21,7 +21,7 @@ public:
     // Type Aliases
 
     typedef typename std::function<E*()> Generator;
-    typedef typename std::function<Real(E const&)> Evaluator;
+    typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
     typedef typename std::vector<E*> Pop;
 
 public:
@@ -33,6 +33,8 @@ public:
      * @param size size of the population
      * @param generator Generate new Entity randomly;
      *        the ownership of those objects is transfered to this Population
+     * @param evaluator Fittness function;
+     *        the bigger the better it is
      */
     Population(unsigned int size, Generator generator, Evaluator evaluator)
         : generator(generator)
