@@ -38,9 +38,9 @@ public:
      *        the bigger the better it is
      */
     Population(unsigned int size, Generator generator, Evaluator evaluator)
-        : generator(generator)
+        : size(size)
+        , generator(generator)
         , evaluator(evaluator) {
-        initPop(size);
     }
 
     /// Dtor
@@ -54,25 +54,14 @@ public:
         return E();
     }
 
-private:
-    // Private methods
 
-    /// Initialise the population
-    void initPop(unsigned int size) {
-        deluge();
 
-        pop.resize(size);
-        std::generate(pop.begin(), pop.end(), generator);
-    }
 
-    /// Clear the population completly
-    void deluge() {
-        pop.clear();
     }
 
 private:
     // Data
-    Pop pop;
+    unsigned int size;
     Generator generator;
     Evaluator evaluator;
 };
