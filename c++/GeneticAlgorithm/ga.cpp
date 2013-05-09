@@ -85,7 +85,7 @@ int main(int, char const**)
 {
     // Equation :
     //
-    // 15 * Sin[x - 15] / x * (y - 7) * (y - 30) + Cos[y - 15] / y
+    // Sin[x - 15] / x * (y - 7) * (y - 30)
     //
     // Range : (x, y) in [9, 30] x [7, 30]
 
@@ -101,7 +101,7 @@ int main(int, char const**)
         Real x, y;
         std::tie(x, y) = ps;
 
-        return 15 * std::sin(x - 15) / x * (y - 7) * (y - 30) + std::cos(y - 15) / y;
+        return std::sin(x - 15) / x * (y - 7) * (y - 30);
     };
 
     // Create the population
