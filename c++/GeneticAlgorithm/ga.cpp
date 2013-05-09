@@ -9,11 +9,44 @@
 #include <tuple>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 
 
 typedef double Real;
 
+struct Settings {
+    Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
+        : size(size)
+        , K(K)
+        , M(M)
+        , N(N)
+        , CO(CO) {
+        if (!isValid()) {
+            throw new std::domain_error("Invalid settings");
+        }
+    }
 
+    unsigned int size; ///< population size
+    unsigned int K; ///< number of killed per generation
+    unsigned int M; ///< number of mutated per generation
+    unsigned int N; ///< number of new individuals (random) per generation
+    unsigned int CO; ///< number of new indifiduals (cross over) per generation
+
+    /// Make sure the settings are valid
+    bool isValid() const {
+        // K, M < size
+        if (K >= size || M >= size) {
+            return false;
+        }
+
+        // N + CO = K
+        if (N + CO != K) {
+            return false;
+        }
+
+        return true;
+    }
+};
 
 template <typename E>
 class Population
@@ -31,21 +64,20 @@ public:
     /*!
      * Ctor
      *
-     * @param size size of the population
+     * @param settings settings for the algorithm
      * @param generator Generate new Entity randomly;
      *        the ownership of those objects is transfered to this Population
      * @param evaluator Fittness function;
      *        the bigger the better it is
      */
-    Population(unsigned int size, Generator generator, Evaluator evaluator)
-        : size(size)
+    Population(Settings settings, Generator generator, Evaluator evaluator)
+        : settings(settings)
         , generator(generator)
         , evaluator(evaluator) {
     }
 
     /// Dtor
     ~Population() {
-        deluge();
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
@@ -121,7 +153,7 @@ public:
 
 private:
     // Data
-    unsigned int size;
+    Settings settings;
     Generator generator;
     Evaluator evaluator;
 };
@@ -153,9 +185,11 @@ int main(int, char const**)
         return std::sin(x - 15) / x * (y - 7) * (y - 30);
     };
 
+    // Settings
+    Settings settings(100, 15, 20, 5, 15);
+
     // Create the population
-    unsigned int const SIZE = 100;
-    Population<Params> pop(SIZE, generator, evaluator);
+    Population<Params> pop(settings, generator, evaluator);
 
 
     // Run the Genetic Algorithm
