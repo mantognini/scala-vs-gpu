@@ -78,51 +78,6 @@ private:
 typedef std::tuple<Real, Real> Params;
 
 
-class Polynomial
-{
-public:
-    // Types Aliases
-    typedef std::tuple<Real, Real, Real> Term; // (px, py, a) -> a * x^px * y^py
-    typedef std::vector<Term> Terms;
-
-public:
-    /*!
-     * Ctor
-     *
-     * @param a coefficients
-     */
-    Polynomial(Terms const& ts)
-        : ts(ts) {
-        // That's it
-    }
-
-    Real evaluate(Params const& ps) const {
-        Real x, y;
-        std::tie(x, y) = ps;
-
-        auto mapper = [&](Term const& t) -> Real {
-            Real a, px, py;
-            std::tie(a, px, py) = t;
-            return a * std::pow(x, px) * std::pow(y, py);
-        };
-
-        auto reducer = [](Real sum, Real term) {
-            return sum + term;
-        };
-
-        return mapreduce<Term, Real, Terms::const_iterator>(
-                   ts.begin(),
-                   ts.end(),
-                   mapper,
-                   reducer,
-                   Real(0)
-               );
-    }
-
-private:
-    Terms const& ts;
-};
-
 int main(int, char const**)
 {
     // Evaluation range
