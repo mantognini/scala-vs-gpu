@@ -90,7 +90,7 @@ public:
      * @param a coefficients
      */
     Polynomial(Terms const& ts)
-    : ts(ts) {
+        : ts(ts) {
         // That's it
     }
 
