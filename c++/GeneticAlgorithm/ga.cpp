@@ -8,6 +8,7 @@
 #include <numeric>
 #include <tuple>
 #include <cmath>
+#include <iostream>
 
 
 typedef double Real;
@@ -47,7 +48,11 @@ public:
         deluge();
     }
 
-    // TODO add more methods and stuff..
+    /// Apply the genetic algorithm until the population stabilise and return the best entity
+    E run() {
+        // TODO
+        return E();
+    }
 
 private:
     // Private methods
@@ -103,6 +108,12 @@ int main(int, char const**)
     unsigned int const SIZE = 100;
     Population<Params> pop(SIZE, generator, evaluator);
 
+
+    // Run the Genetic Algorithm
+    Real x, y;
+    std::tie(x, y) = pop.run();
+
+    std::cout << "Best is (" << x << ", " << y << ")" << std::endl;
 
     return 0;
 }
