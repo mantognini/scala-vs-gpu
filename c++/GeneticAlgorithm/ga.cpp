@@ -82,23 +82,25 @@ typedef std::tuple<Real, Real> Params;
 
 int main(int, char const**)
 {
-    // Evaluation range
-    Real const RANGE_MIN = -100000;
-    Real const RANGE_MAX =  100000;
+    // Equation :
+    //
+    // 15 * Sin[x - 15] / x * (y - 7) * (y - 30) + Cos[y - 15] / y
+    //
+    // Range : (x, y) in [9, 30] x [7, 30]
 
-    // Create a random parameter in the evaluation range
-    auto randomParameter = [&]() -> Real {
-        return uniform(RANGE_MIN, RANGE_MAX);
+    Real constexpr MIN_X = 9, MAX_X = 30, MIN_Y = 7, MAX_Y = 30;
+
+    // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
+    auto generator = []() -> Params* {
+        return new Params(uniform(MIN_X, MAX_X), uniform(MIN_Y, MAX_Y));
     };
 
-    // Generator; random parameters in [MIN, MAX] x [MIN, MAX]
-    auto generator = [&]() -> Params* {
-        return new Params(randomParameter(), randomParameter());
-    };
+    // Evaluator; the biggest the better
+    auto evaluator = [](Params const& ps) -> Real {
+        Real x, y;
+        std::tie(x, y) = ps;
 
-    // Evaluator; the closer to 0 the better
-    auto evaluator = [&](Params const& ps) -> Real {
-        return 0; // TODO
+        return 15 * std::sin(x - 15) / x * (y - 7) * (y - 30) + std::cos(y - 15) / y;
     };
 
     // Create the population
