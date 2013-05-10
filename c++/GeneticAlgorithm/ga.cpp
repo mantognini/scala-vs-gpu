@@ -77,10 +77,6 @@ public:
         , evaluator(evaluator) {
     }
 
-    /// Dtor
-    ~Population() {
-    }
-
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     E run() {
 
