@@ -235,11 +235,11 @@ int main(int, char const**)
 try {
     // Equation :
     //
-    // Sin[x - 15] / x * (y - 7) * (y - 30)
+    // Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
     //
-    // Range : (x, y) in [9, 30] x [7, 30]
+    // Range : (x, y) in [9, 100] x [7, 50]
 
-    constexpr Real MIN_X = 9, MAX_X = 30, MIN_Y = 7, MAX_Y = 30;
+    constexpr Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
 
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
     const auto generator = []() -> Params {
@@ -251,7 +251,7 @@ try {
         Real x, y;
         std::tie(x, y) = ps;
 
-        return std::sin(x - 15) / x * (y - 7) * (y - 30);
+        return std::sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45);
     };
 
     // CrossOver; takes the average of the two entities
