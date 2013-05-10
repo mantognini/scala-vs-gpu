@@ -85,14 +85,17 @@ public:
         typedef std::tuple<E, double> EntityFitness;
         typedef std::vector<EntityFitness> Pop;
 
+        const auto entityWithFitness = [&](E const& entity) -> EntityFitness {
+            return EntityFitness(entity, evaluator(entity));
+        };
+
         // Step 1 + 2.
         // -----------
         //
         // Generate a population & evaluate it
         Pop pop; // collection of (entitiy, fitness)
         std::generate_n(std::back_inserter(pop), settings.size, [&]() {
-            E entity = generator();
-            return EntityFitness(entity, evaluator(entity));
+            return entityWithFitness(generator());
         });
         // Now sort it
         const auto comparator = [](EntityFitness const& a, EntityFitness const& b) -> bool {
@@ -132,9 +135,7 @@ public:
                 const unsigned int first = uniform<unsigned int>(rangeStart, rangeEnd);
                 const unsigned int second = uniform<unsigned int>(rangeStart, rangeEnd);
 
-                const E entity = crossover(std::get<0>(pop[first]), std::get<0>(pop[second]));
-
-                pop[i] = EntityFitness(entity, evaluator(entity));
+                pop[i] = entityWithFitness(crossover(std::get<0>(pop[first]), std::get<0>(pop[second])));
             }
 
 
@@ -145,8 +146,7 @@ public:
 
             // Replace the last N entities (see comment at step 3)
             for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
-                const E entity = generator();
-                pop[i] = EntityFitness(entity, evaluator(entity));
+                pop[i] = entityWithFitness(generator());
             }
 
 
