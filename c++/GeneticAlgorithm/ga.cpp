@@ -49,7 +49,7 @@ struct Settings {
         }
 
         // CF in ]0, 1[
-        if (CF <= Real(0) || Real(1) >= CF) {
+        if (CF <= Real(0) || Real(1) <= CF) {
             return false;
         }
 
@@ -226,7 +226,7 @@ typedef std::tuple<Real, Real> Params;
 
 
 int main(int, char const**)
-{
+try {
     // Equation :
     //
     // Sin[x - 15] / x * (y - 7) * (y - 30)
@@ -263,7 +263,7 @@ int main(int, char const**)
     };
 
     // Settings
-    const Settings settings(100, 15, 20, 5, 15, 0.1);
+    const Settings settings(100, 20, 20, 5, 15, 0.1);
 
     // Create the population
     Population<Params> pop(settings, generator, evaluator, crossover, mutator);
@@ -276,6 +276,9 @@ int main(int, char const**)
     std::cout << "Best is (" << x << ", " << y << ")" << std::endl;
 
     return 0;
+} catch (std::exception e) {
+    std::cerr << "[ERROR] " << e.what() << std::endl;
+    return -1;
 }
 
 
