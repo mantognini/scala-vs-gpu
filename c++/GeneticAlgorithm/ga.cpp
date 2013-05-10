@@ -10,6 +10,7 @@
 #include <cmath>
 #include <iostream>
 #include <stdexcept>
+#include <iterator>
 
 
 typedef double Real;
@@ -87,7 +88,8 @@ public:
         // -------
         //
         // Generate a population
-
+        std::vector<E> pop;
+        std::generate_n(std::back_inserter(pop), settings.size, generator);
 
 
         // Step 2.
