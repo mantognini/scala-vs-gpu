@@ -95,7 +95,7 @@ public:
             return EntityFitness(entity, evaluator(entity));
         });
         // Now sort it
-        auto comparator = [](EntityFitness const& a, EntityFitness const& b) -> bool {
+        const auto comparator = [](EntityFitness const& a, EntityFitness const& b) -> bool {
             return std::get<1>(a) > std::get<1>(b); // sort by fitness. bigger is better
         };
         std::sort(pop.begin(), pop.end(), comparator);
@@ -176,15 +176,15 @@ int main(int, char const**)
     //
     // Range : (x, y) in [9, 30] x [7, 30]
 
-    Real constexpr MIN_X = 9, MAX_X = 30, MIN_Y = 7, MAX_Y = 30;
+    constexpr Real MIN_X = 9, MAX_X = 30, MIN_Y = 7, MAX_Y = 30;
 
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-    auto generator = []() -> Params {
+    const auto generator = []() -> Params {
         return Params(uniform(MIN_X, MAX_X), uniform(MIN_Y, MAX_Y));
     };
 
     // Evaluator; the biggest the better
-    auto evaluator = [](Params const& ps) -> Real {
+    const auto evaluator = [](Params const& ps) -> Real {
         Real x, y;
         std::tie(x, y) = ps;
 
@@ -192,7 +192,7 @@ int main(int, char const**)
     };
 
     // CrossOver; takes the average of the two entities
-    auto crossover = [](Params const& as, Params const& bs) -> Params {
+    const auto crossover = [](Params const& as, Params const& bs) -> Params {
         Real ax, ay, bx, by;
         std::tie(ax, ay) = as;
         std::tie(bx, by) = bs;
@@ -201,7 +201,7 @@ int main(int, char const**)
     };
 
     // Settings
-    Settings settings(100, 15, 20, 5, 15);
+    const Settings settings(100, 15, 20, 5, 15);
 
     // Create the population
     Population<Params> pop(settings, generator, evaluator, crossover);
