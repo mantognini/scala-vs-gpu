@@ -115,6 +115,14 @@ public:
         std::sort(pop.begin(), pop.end(), comparator);
 
 
+        // Score; used to determine if the population has converged or not
+        const auto score = [](Pop const& pop) -> Real {
+            return std::accumulate(pop.begin(), pop.end(), Real(0), [](Real psum, EntityFitness const& ef) -> Real {
+                return psum + std::get<1>(ef);
+            });
+        };
+        Real previousScore = score(pop);
+
         bool running = true;
         do {
 
@@ -184,6 +192,14 @@ public:
             //
             // Goto Step 3 if the population is not stable yet
 
+            const Real newScore = score(pop);
+            if (std::abs(newScore - previousScore) < newScore * settings.CF) {
+                // Ok, we have converged ! Stop there.
+                running = false;
+            }
+
+            // Update previous score for next round
+            previousScore = newScore;
 
         } while(running);
 
