@@ -92,7 +92,7 @@ public:
         Pop pop; // collection of (entitiy, fitness)
         std::generate_n(std::back_inserter(pop), settings.size, [&]() {
             E entity = generator();
-            return std::make_tuple(entity, evaluator(entity));
+            return EntityFitness(entity, evaluator(entity));
         });
         // Now sort it
         auto comparator = [](EntityFitness const& a, EntityFitness const& b) -> bool {
