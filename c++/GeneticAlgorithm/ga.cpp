@@ -109,6 +109,7 @@ public:
             //
             // Remove the worse K individuals
 
+            // Skipped -> replace those entities with step 5 & 6
 
 
             // Step 4.
@@ -123,6 +124,16 @@ public:
             //
             // Create CO new individuals with CrossOver
 
+            // Replace the last CO entities before the N last ones (see comment at step 3)
+            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count) {
+                // Select two random entities from the living ones, that is in range [0, size-K[
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                const unsigned int first = uniform<unsigned int>(rangeStart, rangeEnd);
+                const unsigned int second = uniform<unsigned int>(rangeStart, rangeEnd);
+
+                pop[i] = crossover(std::get<0>(pop[first]), std::get<0>(pop[second]));
+            }
 
 
             // Step 6.
@@ -130,6 +141,10 @@ public:
             //
             // Generate N new individuals randomly
 
+            // Replace the last N entities (see comment at step 3)
+            for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
+                pop[i] = generator();
+            }
 
 
             // Step 7.
