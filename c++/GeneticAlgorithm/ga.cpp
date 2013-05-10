@@ -1,5 +1,6 @@
 
 #include "Random/Uniform.hpp"
+#include "Random/Normal.hpp"
 #include "mapreduce.hpp"
 
 #include <vector>
@@ -58,6 +59,7 @@ public:
     typedef typename std::function<E()> Generator;
     typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
     typedef typename std::function<E(E const&, E const&)> CrossOver;
+    typedef typename std::function<E(E const&)> Mutator;
 
 public:
     // Public API
@@ -71,12 +73,14 @@ public:
      * @param evaluator Fitness function;
      *        the bigger the better it is
      * @param crossover Takes two entities to produce a new one
+     * @param mutator Mutate an entity
      */
-    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover)
+    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover, Mutator mutator)
         : settings(settings)
         , generator(generator)
         , evaluator(evaluator)
-        , crossover(crossover) {
+        , crossover(crossover)
+        , mutator(mutator) {
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
@@ -183,6 +187,7 @@ private:
     Generator generator;
     Evaluator evaluator;
     CrossOver crossover;
+    Mutator mutator;
 };
 
 
@@ -221,11 +226,16 @@ int main(int, char const**)
         return Params((ax + bx) / Real(2), (ay + by) / Real(2));
     };
 
+    // Mutator; takes a normal distribution to shift the current value
+    const auto mutator = [](Params const& ps) -> Params {
+        return ps; // TODO implement me !
+    };
+
     // Settings
     const Settings settings(100, 15, 20, 5, 15);
 
     // Create the population
-    Population<Params> pop(settings, generator, evaluator, crossover);
+    Population<Params> pop(settings, generator, evaluator, crossover, mutator);
 
 
     // Run the Genetic Algorithm
