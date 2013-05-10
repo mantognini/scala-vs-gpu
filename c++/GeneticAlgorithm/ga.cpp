@@ -57,6 +57,7 @@ public:
 
     typedef typename std::function<E()> Generator;
     typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
+    typedef typename std::function<E(E const&, E const&)> CrossOver;
 
 public:
     // Public API
@@ -69,11 +70,13 @@ public:
      *        the ownership of those objects is transfered to this Population
      * @param evaluator Fitness function;
      *        the bigger the better it is
+     * @param crossover Takes two entities to produce a new one
      */
-    Population(Settings settings, Generator generator, Evaluator evaluator)
+    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover)
         : settings(settings)
         , generator(generator)
-        , evaluator(evaluator) {
+        , evaluator(evaluator)
+        , crossover(crossover) {
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
@@ -158,6 +161,7 @@ private:
     Settings settings;
     Generator generator;
     Evaluator evaluator;
+    CrossOver crossover;
 };
 
 
@@ -187,11 +191,20 @@ int main(int, char const**)
         return std::sin(x - 15) / x * (y - 7) * (y - 30);
     };
 
+    // CrossOver; takes the average of the two entities
+    auto crossover = [](Params const& as, Params const& bs) -> Params {
+        Real ax, ay, bx, by;
+        std::tie(ax, ay) = as;
+        std::tie(bx, by) = bs;
+
+        return Params((ax + bx) / Real(2), (ay + by) / Real(2));
+    };
+
     // Settings
     Settings settings(100, 15, 20, 5, 15);
 
     // Create the population
-    Population<Params> pop(settings, generator, evaluator);
+    Population<Params> pop(settings, generator, evaluator, crossover);
 
 
     // Run the Genetic Algorithm
