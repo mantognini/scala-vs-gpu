@@ -150,7 +150,7 @@ public:
         //
         // Identify the best individual from the current population
 
-        return E();
+        return std::get<0>(pop.front()); // the population is already sorted
     }
 
 private:
