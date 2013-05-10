@@ -132,7 +132,9 @@ public:
                 const unsigned int first = uniform<unsigned int>(rangeStart, rangeEnd);
                 const unsigned int second = uniform<unsigned int>(rangeStart, rangeEnd);
 
-                pop[i] = crossover(std::get<0>(pop[first]), std::get<0>(pop[second]));
+                const E entity = crossover(std::get<0>(pop[first]), std::get<0>(pop[second]));
+
+                pop[i] = EntityFitness(entity, evaluator(entity));
             }
 
 
@@ -143,7 +145,8 @@ public:
 
             // Replace the last N entities (see comment at step 3)
             for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
-                pop[i] = generator();
+                const E entity = generator();
+                pop[i] = EntityFitness(entity, evaluator(entity));
             }
 
 
@@ -152,6 +155,9 @@ public:
             //
             // Evaluate the current population
 
+            // The evaluation of new entities was already done in step 3 to 6
+            // So we only sort the population
+            std::sort(pop.begin(), pop.end(), comparator);
 
 
             // Step 8.
