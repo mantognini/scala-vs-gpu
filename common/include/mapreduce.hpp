@@ -1,4 +1,7 @@
 
+#ifndef MAP_REDUCE_HPP
+#define MAP_REDUCE_HPP
+
 #include <algorithm>
 #include <functional>
 
@@ -30,3 +33,5 @@ U mapreduce(InIt first,
 
     return result;
 }
+
+#endif
