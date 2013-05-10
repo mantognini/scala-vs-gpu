@@ -123,6 +123,8 @@ public:
         };
         Real previousScore = score(pop);
 
+        unsigned int rounds = 0;
+
         bool running = true;
         do {
 
@@ -201,7 +203,11 @@ public:
             // Update previous score for next round
             previousScore = newScore;
 
+            ++rounds;
+
         } while(running);
+
+        std::clog << "#Round : " << rounds << std::endl;
 
 
         // Step 9.
@@ -263,7 +269,7 @@ try {
     };
 
     // Settings
-    const Settings settings(100, 20, 20, 5, 15, 0.1);
+    const Settings settings(100, 20, 20, 5, 15, 0.01);
 
     // Create the population
     Population<Params> pop(settings, generator, evaluator, crossover, mutator);
