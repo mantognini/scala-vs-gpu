@@ -124,6 +124,14 @@ public:
             //
             // Mutate M individuals of the population
 
+            // Choose M random individuals from the living ones, that is in range [0, size-K[
+            for (unsigned int count = 0; count < settings.M; ++count) {
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                const unsigned int index = uniform<unsigned int>(rangeStart, rangeEnd);
+
+                pop[index] = entityWithFitness(mutator(std::get<0>(pop[index])));
+            }
 
 
             // Step 5.
