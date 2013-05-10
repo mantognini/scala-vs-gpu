@@ -57,7 +57,6 @@ public:
 
     typedef typename std::function<E()> Generator;
     typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
-    typedef typename std::vector<E> Pop;
 
 public:
     // Public API
@@ -68,7 +67,7 @@ public:
      * @param settings settings for the algorithm
      * @param generator Generate new Entity randomly;
      *        the ownership of those objects is transfered to this Population
-     * @param evaluator Fittness function;
+     * @param evaluator Fitness function;
      *        the bigger the better it is
      */
     Population(Settings settings, Generator generator, Evaluator evaluator)
@@ -80,18 +79,23 @@ public:
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     E run() {
 
-        // Step 1.
-        // -------
-        //
-        // Generate a population
-        std::vector<E> pop;
-        std::generate_n(std::back_inserter(pop), settings.size, generator);
+        typedef std::tuple<E, double> EntityFitness;
+        typedef std::vector<EntityFitness> Pop;
 
-
-        // Step 2.
-        // -------
+        // Step 1 + 2.
+        // -----------
         //
-        // Evaluate the initial population
+        // Generate a population & evaluate it
+        Pop pop; // collection of (entitiy, fitness)
+        std::generate_n(std::back_inserter(pop), settings.size, [&]() {
+            E entity = generator();
+            return std::make_tuple(entity, evaluator(entity));
+        });
+        // Now sort it
+        auto comparator = [](EntityFitness const& a, EntityFitness const& b) -> bool {
+            return std::get<1>(a) > std::get<1>(b); // sort by fitness. bigger is better
+        };
+        std::sort(pop.begin(), pop.end(), comparator);
 
 
         bool running = true;
