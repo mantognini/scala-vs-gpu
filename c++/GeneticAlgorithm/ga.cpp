@@ -215,7 +215,7 @@ typedef std::tuple<Real, Real> Params;
 
 
 int main(int, char const**)
-try {
+{
     using Population = Population<Params>;
 
     // Equation :
@@ -308,9 +308,6 @@ try {
     std::cout << "Best is (" << x << ", " << y << ")" << std::endl;
 
     return 0;
-} catch (std::exception e) {
-    std::cerr << "[ERROR] " << e.what() << std::endl;
-    return -1;
 }
 
 
