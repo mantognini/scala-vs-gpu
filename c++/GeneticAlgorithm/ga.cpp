@@ -56,10 +56,15 @@ class Population
 public:
     // Type Aliases
 
+    typedef std::tuple<E, double> EntityFitness;
+    typedef std::vector<EntityFitness> Pop;
+
     typedef typename std::function<E()> Generator;
     typedef typename std::function<Real(E const&)> Evaluator; ///< the bigger the better it is
     typedef typename std::function<E(E const&, E const&)> CrossOver;
     typedef typename std::function<E(E const&)> Mutator;
+
+    typedef typename std::function<bool(Pop const&)> Terminator;
 
 public:
     // Public API
@@ -74,20 +79,19 @@ public:
      *        the bigger the better it is
      * @param crossover Takes two entities to produce a new one
      * @param mutator Mutate an entity
+     * @param terminator Determine if the population has converged or not
      */
-    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover, Mutator mutator)
+    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover, Mutator mutator, Terminator terminator)
         : settings(settings)
         , generator(generator)
         , evaluator(evaluator)
         , crossover(crossover)
-        , mutator(mutator) {
+        , mutator(mutator)
+        , terminator(terminator) {
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     E run() {
-
-        typedef std::tuple<E, double> EntityFitness;
-        typedef std::vector<EntityFitness> Pop;
 
         const auto entityWithFitness = [&](E const& entity) -> EntityFitness {
             return EntityFitness(entity, evaluator(entity));
@@ -199,6 +203,7 @@ private:
     Evaluator evaluator;
     CrossOver crossover;
     Mutator mutator;
+    Terminator terminator;
 };
 
 
@@ -207,6 +212,8 @@ typedef std::tuple<Real, Real> Params;
 
 int main(int, char const**)
 try {
+    using Population = Population<Params>;
+
     // Equation :
     //
     // Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
@@ -242,11 +249,17 @@ try {
         return ps; // TODO implement me !
     };
 
+    // Terminator; stop evolution when population has (relatively) converged
+    unsigned int count = 0;
+    const auto terminator = [&](Population::Pop const& pop) -> bool {
+        return ++count > 30; // TODO implement me !
+    };
+
     // Settings
     const Settings settings(100, 20, 20, 5, 15);
 
     // Create the population
-    Population<Params> pop(settings, generator, evaluator, crossover, mutator);
+    Population pop(settings, generator, evaluator, crossover, mutator, terminator);
 
 
     // Run the Genetic Algorithm
