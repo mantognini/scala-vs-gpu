@@ -20,10 +20,10 @@ case class Mandelbrot(val width: Int, val height: Int,
 
         var iter = 0
         while (iter < maxIteration && z_r * z_r + z_i * z_i < 4.0) {
-        	// z = z * z + c
-        	val tmp = z_r;
-			z_r = z_r * z_r - z_i * z_i + c_r
-			z_i = 2 * tmp * z_i + c_i
+            // z = z * z + c
+            val tmp = z_r;
+            z_r = z_r * z_r - z_i * z_i + c_r
+            z_i = 2 * tmp * z_i + c_i
             iter = iter + 1
         }
 
