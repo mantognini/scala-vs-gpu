@@ -116,10 +116,10 @@ public:
         };
         std::sort(pop.begin(), pop.end(), comparator);
 
-        unsigned int rounds = 0;
+        // unsigned int rounds = 0;
 
         do {
-            ++rounds;
+            // ++rounds;
 
             // Step 3.
             // -------
@@ -189,7 +189,7 @@ public:
 
         } while (!terminator(pop));
 
-        std::clog << "#Round : " << rounds << std::endl;
+        // std::clog << "#Round : " << rounds << std::endl;
 
 
         // Step 9.
@@ -254,13 +254,7 @@ int main(int, char const**)
     };
 
     // Terminator; stop evolution when population has (relatively) converged
-    unsigned int count = 0; // number of rounds
-    constexpr unsigned int MAX_ROUNDS = 100000;
     const auto terminator = [&](Population::Pop const& pop) -> bool {
-        if (++count >= MAX_ROUNDS) {
-            return true;
-        }
-
         // Compute average on x and y axes
         Real avgX(0), avgY(0);
         for (auto const& ef: pop) {
