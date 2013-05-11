@@ -182,8 +182,7 @@ public:
             //
             // Goto Step 3 if the population is not stable yet
 
-
-        } while (true /* TODO */);
+        } while (!terminator(pop));
 
         std::clog << "#Round : " << rounds << std::endl;
 
