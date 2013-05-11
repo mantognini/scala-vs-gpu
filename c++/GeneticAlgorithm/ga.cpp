@@ -16,6 +16,11 @@
 
 typedef double Real;
 
+bool isClose(Real value, Real target, Real flex)
+{
+    return (1 - flex) * target <= value && value <= (1 + flex) * target;
+}
+
 struct Settings {
     Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
         : size(size)
@@ -249,13 +254,48 @@ try {
     };
 
     // Terminator; stop evolution when population has (relatively) converged
-    unsigned int count = 0;
+    unsigned int count = 0; // number of rounds
+    constexpr unsigned int MAX_ROUNDS = 100000;
     const auto terminator = [&](Population::Pop const& pop) -> bool {
-        return ++count > 30; // TODO implement me !
+        if (++count >= MAX_ROUNDS) {
+            return true;
+        }
+
+        // Compute average on x and y axes
+        Real avgX(0), avgY(0);
+        for (auto const& ef: pop) {
+            const Params ps = std::get<0>(ef);
+
+            Real x, y;
+            std::tie(x, y) = ps;
+
+            avgX += x;
+            avgY += y;
+        }
+        avgX /= pop.size();
+        avgY /= pop.size();
+
+        // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
+        unsigned int maxOuts = pop.size() * 0.25;
+        constexpr Real EPSILON = 0.02;
+
+        unsigned int outs = 0;
+        for (auto const& ef: pop) {
+            const Params ps = std::get<0>(ef);
+
+            Real x, y;
+            std::tie(x, y) = ps;
+
+            if (!isClose(x, avgX, EPSILON) || !isClose(y, avgY, EPSILON)) {
+                ++outs;
+            }
+        }
+
+        return outs <= maxOuts;
     };
 
     // Settings
-    const Settings settings(100, 20, 20, 5, 15);
+    const Settings settings(1000, 100, 50, 50, 50);
 
     // Create the population
     Population pop(settings, generator, evaluator, crossover, mutator, terminator);
