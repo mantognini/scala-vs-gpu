@@ -17,13 +17,12 @@
 typedef double Real;
 
 struct Settings {
-    Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO, Real CF)
+    Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
         : size(size)
         , K(K)
         , M(M)
         , N(N)
-        , CO(CO)
-        , CF(CF) {
+        , CO(CO) {
         if (!isValid()) {
             throw new std::domain_error("Invalid settings");
         }
@@ -34,7 +33,6 @@ struct Settings {
     const unsigned int M; ///< number of mutated per generation
     const unsigned int N; ///< number of new individuals (random) per generation
     const unsigned int CO; ///< number of new indifiduals (cross over) per generation
-    const Real CF; ///< Convergence factor
 
     /// Make sure the settings are valid
     bool isValid() const {
@@ -45,11 +43,6 @@ struct Settings {
 
         // N + CO = K
         if (N + CO != K) {
-            return false;
-        }
-
-        // CF in ]0, 1[
-        if (CF <= Real(0) || Real(1) <= CF) {
             return false;
         }
 
@@ -250,7 +243,7 @@ try {
     };
 
     // Settings
-    const Settings settings(100, 20, 20, 5, 15, 0.01);
+    const Settings settings(100, 20, 20, 5, 15);
 
     // Create the population
     Population<Params> pop(settings, generator, evaluator, crossover, mutator);
