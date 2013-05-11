@@ -214,6 +214,33 @@ private:
 typedef std::tuple<Real, Real> Params;
 
 
+template <typename E>
+struct Action {
+    Action(Population<E>& popref)
+        : popref(popref) {
+    }
+
+    E operator()() const {
+        return popref.run();
+    }
+
+    std::string csvdescription() const {
+        return "ø"; // no explicit parameters for the computation
+    }
+
+    Population<E>& popref;
+};
+
+std::ostream& operator<<(std::ostream& out, Params const& ps)
+{
+    Real x, y;
+    std::tie(x, y) = ps;
+
+    return out << x << "," << y;
+}
+
+#include "stats.hpp"
+
 int main(int, char const**)
 {
     using Population = Population<Params>;
@@ -296,10 +323,7 @@ int main(int, char const**)
 
 
     // Run the Genetic Algorithm
-    Real x, y;
-    std::tie(x, y) = pop.run();
-
-    std::cout << "Best is (" << x << ", " << y << ")" << std::endl;
+    stats<Action<Params>, Params>(Action<Params>(pop), 100);
 
     return 0;
 }
