@@ -84,7 +84,7 @@ object Mandelbrot {
             val µs = (toc - tic) / 1000
 
             // Display the result
-            val csvdescription = "parallel" + "," + side + "," + maxIteration + "," + range
+            val csvdescription = title + "," + side + "," + maxIteration + "," + range
             println(csvdescription + "," + µs)
 
             // Export the set to PNG
