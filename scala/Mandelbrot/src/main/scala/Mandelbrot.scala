@@ -45,22 +45,24 @@ object Mandelbrot {
             ComplexRange( -0.4, -0.6, -0.2, -0.8 ),
             ComplexRange( -0.24, -0.64, -0.26, -0.66 )
         )
-        val parallels = List(false, true)
 
         val inSet = 0x000000
         val notInSet = 0xffffff
 
         var imgId = 0;
+        
+        val fj = new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(8))
 
-        def stats(side: Int, maxIteration: Int, range: ComplexRange, parallel: Boolean) {
+        def stats(side: Int, maxIteration: Int, range: ComplexRange) {
 
             // Generate an image of the Mandelbrot set
             def compute() = {
-                val indexes = 0 until (side * side)
+                val indexes = (0 until side * side).par
+                indexes.tasksupport = fj
 
                 val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
                 val img = Array.ofDim[Int](side * side) 
-                (if (parallel) indexes.par else indexes) foreach { idx =>
+                indexes foreach { idx =>
                   img(idx) = generator.computeElement(idx)
                 }
 
@@ -92,7 +94,7 @@ object Mandelbrot {
             val µs = (toc - tic) / 1000
 
             // Display the result
-            val csvdescription = (if (parallel) "parallel" else "sequential") + "," + side + "," + maxIteration + "," + range
+            val csvdescription = "parallel" + "," + side + "," + maxIteration + "," + range
             println(csvdescription + "," + µs)
 
             // Export the set to PNG
@@ -111,12 +113,13 @@ object Mandelbrot {
             imgId += 1
         }
 
-        for(side <- sides;
-            maxIteration <- iterations;
-            range <- ranges;
-            parallel <- parallels) {
+        for {
+          side <- sides
+          maxIteration <- iterations
+          range <- ranges
+        }{
 
-            stats(side, maxIteration, range, parallel)
+            stats(side, maxIteration, range)
         }
     }
 }
