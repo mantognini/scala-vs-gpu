@@ -35,7 +35,7 @@ done
 ## Benchmark using custom csv exporter (with current parallel collection)
 
 java $javaopts \
-     -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"`dirname $0`/target/scala-2.10/classes/" \
+     -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"`dirname $0`/lib/workstealing_2.10-0.1.jar":"`dirname $0`/target/scala-2.10/classes/" \
      "Mandelbrot" \
 | tee data.precsv
    
