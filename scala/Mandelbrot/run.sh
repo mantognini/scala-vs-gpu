@@ -6,6 +6,8 @@ mkdir -p tmp
 
 sbt compile
 
+javaopts="-Xmx8G -XX:+UseConcMarkSweepGC -XX:MaxPermSize=8G -XX:+UseCondCardMark -server"
+
 ## Workstealing benchmarks (with new parallel collection)
 
 # Settings
@@ -18,7 +20,7 @@ iter=1000
 
 for target in "MandelbrotMASpecific" "MandelbrotMAPC" "MandelbrotSpecific" "MandelbrotPC"
 do
-    java -Xmx4096m -Xms4096m -XX:+UseCondCardMark -server \
+    java $javaopts \
          -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"`dirname $0`/lib/workstealing_2.10-0.1.jar":"`dirname $0`/lib/workstealing_2.10-0.1-test.jar":"`dirname $0`/target/scala-2.10/classes/" \
          -Dsize=$size \
          -Dthreshold=$iter \
@@ -32,7 +34,7 @@ done
 
 ## Benchmark using custom csv exporter (with current parallel collection)
 
-java -Xmx4096m -Xms4096m -XX:+UseCondCardMark -server \
+java $javaopts \
      -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"`dirname $0`/target/scala-2.10/classes/" \
      "Mandelbrot" \
 | tee data.precsv
