@@ -1,6 +1,8 @@
 name := "mandelbrot"
 
-scalaVersion := "2.10.0"
+scalaVersion := "2.10.1"
 
-
+libraryDependencies ++= Seq(
+	"org.scala-lang" % "scala-reflect" % "2.10.1"
+)
 
