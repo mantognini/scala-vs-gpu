@@ -1,6 +1,7 @@
 import java.awt.image.{ BufferedImage }
 import java.io.{ File }
 import javax.imageio.{ ImageIO }
+import scala.collection.workstealing._
 
 case class ComplexRange(val first_r: Double, val first_i: Double, val second_r: Double, val second_i: Double) {
     override def toString(): String =  "{ (" + first_r + ";" + first_i + ") ; (" + second_r + ";" + second_i + ") }"  
@@ -53,26 +54,14 @@ object Mandelbrot {
         
         val fj = new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(8))
 
-        def stats(side: Int, maxIteration: Int, range: ComplexRange) {
-
-            // Generate an image of the Mandelbrot set
-            def compute() = {
-                val indexes = (0 until side * side).par
-                indexes.tasksupport = fj
-
-                val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
-                val img = Array.ofDim[Int](side * side) 
-                indexes foreach { idx =>
-                  img(idx) = generator.computeElement(idx)
-                }
-
-                img
-            }
+        type ComputeFn = (Int, Int, ComplexRange) => Array[Int]
+        
+        def stats(side: Int, maxIteration: Int, range: ComplexRange, title: String, compute: ComputeFn) {
 
             // Warmup
             if (side <= 500 || side <= 1000 && maxIteration < 2000) {
                 for (i <- 0 until 20) {
-                    compute()
+                    compute(side, maxIteration, range)
                 }
             }
 
@@ -84,7 +73,7 @@ object Mandelbrot {
 
             //// COMPUTATION STARTS HERE
 
-            val img = compute()
+            val img = compute(side, maxIteration, range)
 
             //// COMPUTATION ENDS HERE
             
@@ -112,14 +101,41 @@ object Mandelbrot {
 
             imgId += 1
         }
+        
+        // Generate an image of the Mandelbrot set using the current parallel collection
+        def computeNormal(side: Int, maxIteration: Int, range: ComplexRange): Array[Int] = {
+            val indexes = (0 until side * side).par
+            indexes.tasksupport = fj
+
+            val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
+            val img = Array.ofDim[Int](side * side) 
+            indexes foreach { idx =>
+              img(idx) = generator.computeElement(idx)
+            }
+
+            img
+        }
+        
+        // Generate an image of the Mandelbrot set using the next generation of parallel collection
+        def computeNewPC(side: Int, maxIteration: Int, range: ComplexRange): Array[Int] = {
+            val indexes = new ParRange(0 until (side * side), Workstealing.DefaultConfig)
+
+            val generator = Mandelbrot(side, side, range, maxIteration, inSet, notInSet)
+            val img = Array.ofDim[Int](side * side) 
+            indexes foreach { idx =>
+              img(idx) = generator.computeElement(idx)
+            }
+
+            img
+        }
 
         for {
           side <- sides
           maxIteration <- iterations
           range <- ranges
         }{
-
-            stats(side, maxIteration, range)
+            stats(side, maxIteration, range, "normal", computeNormal)
+            stats(side, maxIteration, range, "newpc", computeNewPC)
         }
     }
 }
