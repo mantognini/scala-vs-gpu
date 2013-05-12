@@ -52,7 +52,8 @@ object Mandelbrot {
 
         var imgId = 0;
         
-        val fj = new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(8))
+        val parlevel = sys.props("par").toInt
+        val fj = new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(parlevel))
 
         type ComputeFn = (Int, Int, ComplexRange) => Array[Int]
         
