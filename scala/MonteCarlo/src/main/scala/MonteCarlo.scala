@@ -85,9 +85,6 @@ object MonteCarlo extends PerformanceTest {
         // Compute the average
         val π = 4.0 * insideCount / pointCount
 
-//        println("π is ~" + π + " for (" + pointCount + ", " + parallelismLevel + ", " + par + ") \t" + 
-//            iterCount + " * " + parallelismLevel + " = " + (iterCount * parallelismLevel) + " VS " + pointCount)
-
         π
     }
     
