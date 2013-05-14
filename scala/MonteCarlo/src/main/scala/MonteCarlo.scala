@@ -53,7 +53,7 @@ object MonteCarlo extends PerformanceTest {
 
     lazy val persistor = Persistor.None
     
-    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Boolean, innerpar: Boolean): Double = {
+    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Boolean): Double = {
     	// Config
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
@@ -67,8 +67,7 @@ object MonteCarlo extends PerformanceTest {
         
         val insideCount = gens.aggregate(0.0)({
 		  (acc, genxy) => {
-		    val range1 = 0 until iterCount
-		    val range = if (innerpar) range1.par else range1
+		    val range = 0 until iterCount
 		    
 		    val inside = range.count {
 		      i =>
@@ -96,19 +95,19 @@ object MonteCarlo extends PerformanceTest {
     
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
-    val innerpars = Gen.enumeration("inner parallelism")(true, false)
     val outerpars = Gen.enumeration("outer parallelism")(true, false)
     
-    val params = for (count <- counts;
-      parallelism <- parallelisms;
-      innerpar <- innerpars;
-      outerpar <- outerpars) yield {
-    	(count, parallelism, outerpar, innerpar)
+    val params = for {
+      count <- counts
+      parallelism <- parallelisms
+      outerpar <- outerpars
+    } yield {
+      (count, parallelism, outerpar)
     }
 
     performance of "montecarlo" in {
-        using(params) in { case (pointCount, parallelismLevel, outerpar, innerpar) => 
-          	computeRatioParallel(pointCount, parallelismLevel, outerpar, innerpar) 
+        using(params) in { case (pointCount, parallelismLevel, outerpar) => 
+          	computeRatioParallel(pointCount, parallelismLevel, outerpar) 
         }
     }
 }
