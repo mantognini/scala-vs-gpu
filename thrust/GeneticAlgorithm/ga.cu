@@ -56,8 +56,10 @@ public:
 
     // Define Entity & Fitness Pop using SoA (Structure of Arrays)
     typedef thrust::pair<Real, Real> Params;
-    typedef thrust::device_vector<Params> EntityPop;
-    typedef thrust::device_vector<Real> FitnessPop;
+    typedef thrust::device_vector<Params> EntityPopDevice;
+    typedef thrust::device_vector<Real> FitnessPopDevice;
+    typedef thrust::host_vector<Params> EntityPopHost;
+    typedef thrust::host_vector<Real> FitnessPopHost;
 
 
     // Equation :
@@ -85,13 +87,17 @@ public:
         // -----------
         //
         // Generate a population & evaluate it
-        EntityPop epop(settings.size);
-        FitnessPop fpop(settings.size);
-        thrust::generate(epop.begin(), epop.end(), generator);
+        EntityPopDevice epopd(settings.size);
+        FitnessPopDevice fpopd(settings.size);
+        thrust::generate(epopd.begin(), epopd.end(), generator);
         // Evaluate it
-        thrust::transform(epop.begin(), epop.end(), fpop.begin(), evaluator);
+        thrust::transform(epopd.begin(), epopd.end(), fpopd.begin(), evaluator);
         // Now sort it
-        thrust::sort_by_key(fpop.begin(), fpop.end(), epop.begin());
+        thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
+
+        // Copy data back to host
+        EntityPopHost epoph = epopd;
+        FitnessPopHost fpoph = fpopd;
 
         do {
             // Step 3.
@@ -148,7 +154,7 @@ public:
             //
             // Goto Step 3 if the population is not stable yet
 
-        } while (!terminator(epop));
+        } while (!terminator(epoph));
 
         // Step 9.
         // -------
@@ -211,7 +217,7 @@ public:
 
 
     // Terminator; stop evolution when population has (relatively) converged
-    bool terminator(EntityPop const& pop) {
+    bool terminator(EntityPopHost const& pop) {
         // TODO implement me !
         return true;
     }
