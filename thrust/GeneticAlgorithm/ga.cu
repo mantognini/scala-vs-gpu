@@ -225,8 +225,12 @@ public:
     // CrossOver; takes the average of the two entities
     __host__ __device__
     Params crossover(Params const& as, Params const& bs) {
-        // TODO implement me !
-        return Params();
+        Real ax = as.first,
+             ay = as.second,
+             bx = bs.first,
+             by = bs.second;
+
+        return Params((ax + bx) / Real(2), (ay + by) / Real(2));
     }
 
 
