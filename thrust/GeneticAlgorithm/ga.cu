@@ -208,7 +208,7 @@ std::ostream& operator<<(std::ostream& out, Params const& ps)
 
 int main(int, char const**)
 {
-    using Population = Population<Params>;
+    typedef Population<Params> Population;
 
     // Equation :
     //
