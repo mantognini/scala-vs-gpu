@@ -2,6 +2,7 @@
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>
 #include <thrust/sequence.h>
+#include <thrust/random.h>
 #include "stats.hpp"
 
 typedef float Real;
@@ -113,7 +114,7 @@ public:
             // Mutate M individuals of the population
 
             // Choose M random individuals from the living ones, that is in range [0, size-K[
-            
+
             // TODO implement me !
 
 
@@ -123,7 +124,7 @@ public:
             // Create CO new individuals with CrossOver
 
             // Replace the last CO entities before the N last ones (see comment at step 3)
-            
+
             // TODO implement me !
 
 
@@ -133,7 +134,7 @@ public:
             // Generate N new individuals randomly
 
             // Replace the last N entities (see comment at step 3)
-            
+
             // TODO implement me !
 
 
@@ -144,7 +145,7 @@ public:
 
             // The evaluation of new entities was already done in step 3 to 6
             // So we only sort the population
-            
+
             // TODO implement me !
 
 
@@ -153,7 +154,7 @@ public:
             //
             // Goto Step 3 if the population is not stable yet
 
-        } while (!terminator(pop));
+        } while (!terminator(epop));
 
         // Step 9.
         // -------
@@ -203,44 +204,64 @@ std::ostream& operator<<(std::ostream& out, Params const& ps)
 
 #include "stats.hpp"
 
+// Equation :
+//
+// Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
+//
+// Range : (x, y) in [9, 100] x [7, 50]
+
+static const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
+
+// Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
+__host__ __device__
+Params generator()
+{
+    // TODO implement me !
+    return Params();
+}
+
+
+// Evaluator; the biggest the better
+__host__ __device__
+Real evaluator(Params const& ps)
+{
+    // TODO implement me !
+    return Real(0);
+}
+
+// CrossOver; takes the average of the two entities
+__host__ __device__
+Params crossover(Params const& as, Params const& bs)
+{
+    // TODO implement me !
+    return Params();
+}
+
+
+// Mutator; takes a normal distribution to shift the current value
+__host__ __device__
+Params mutator(Params const& ps)
+{
+    // TODO implement me !
+    return ps;
+}
+
+
+// Terminator; stop evolution when population has (relatively) converged
+__host__ __device__
+bool terminator(Population<Params>::EntityPop const&)
+{
+    // TODO implement me !
+    return true;
+}
+
 int main(int, char const**)
 {
-    typedef Population<Params> Population;
-
-    // Equation :
-    //
-    // Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
-    //
-    // Range : (x, y) in [9, 100] x [7, 50]
-
-    const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
-
-    // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-    
-    // TODO create a function
-    
-
-    // Evaluator; the biggest the better
-
-    // TODO create a function
-
-    // CrossOver; takes the average of the two entities
-    
-    // TODO create a function
-
-    // Mutator; takes a normal distribution to shift the current value
-    
-    // TODO create a function
-
-    // Terminator; stop evolution when population has (relatively) converged
-    
-    // TODO create a function
-
     // Settings
     const Settings settings(1000, 100, 50, 50, 50);
 
     // Create the population
-    Population pop(settings, generator, evaluator, crossover, mutator, terminator);
+    Population<Params> pop(settings, generator, evaluator, crossover, mutator, terminator);
 
 
     // Run the Genetic Algorithm
