@@ -146,8 +146,10 @@ public:
             // Generate N new individuals randomly
 
             // Replace the last N entities (see comment at step 3)
-
-            // TODO implement me !
+            for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
+                epoph[i] = generator();
+                fpoph[i] = evaluator(epoph[i]);
+            }
 
 
             // Step 7.
