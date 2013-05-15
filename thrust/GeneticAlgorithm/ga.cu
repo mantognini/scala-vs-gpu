@@ -99,6 +99,9 @@ public:
         EntityPopHost epoph = epopd;
         FitnessPopHost fpoph = fpopd;
 
+        // Random generators
+        thrust::default_random_engine rng;
+
         do {
             // Step 3.
             // -------
@@ -115,7 +118,16 @@ public:
 
             // Choose M random individuals from the living ones, that is in range [0, size-K[
 
-            // TODO implement me !
+            for (unsigned int count = 0; count < settings.M; ++count) {
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
+                const unsigned int index = uniform(rng);
+
+                // mutate the entity and recompute its fitness
+                epoph[index] = mutator(epoph[index]);
+                fpoph[index] = evaluator(epoph[index]);
+            }
 
 
             // Step 5.
