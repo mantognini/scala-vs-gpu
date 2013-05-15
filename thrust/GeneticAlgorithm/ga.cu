@@ -3,6 +3,7 @@
 #include <thrust/device_vector.h>
 #include <thrust/sequence.h>
 #include <thrust/random.h>
+#include <thrust/functional.h>
 #include "stats.hpp"
 
 typedef float Real;
@@ -56,7 +57,7 @@ public:
     typedef thrust::device_vector<E> EntityPop;
     typedef thrust::device_vector<Real> FitnessPop;
 
-    typedef E (*Generator)();
+    typedef typename thrust::unary_function<void, E> Generator;
     typedef Real (*Evaluator)(E const&); ///< the bigger the better it is
     typedef E (*CrossOver)(E const&, E const&);
     typedef E (*Mutator)(E const&);
@@ -213,12 +214,23 @@ std::ostream& operator<<(std::ostream& out, Params const& ps)
 static const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
 
 // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-__host__ __device__
-Params generator()
-{
-    // TODO implement me !
-    return Params();
-}
+struct Generator : public thrust::unary_function<void, Params> {
+    Generator()
+        : rng(std::rand())
+        , distX(MIN_X, MAX_X)
+        , distY(MIN_Y, MAX_Y) {
+    }
+
+    __host__ __device__
+    Params operator()() {
+        return Params(distX(rng), distY(rng));
+    }
+
+private:
+    // Random generators
+    thrust::default_random_engine rng;
+    thrust::uniform_real_distribution<Real> distX, distY;
+};
 
 
 // Evaluator; the biggest the better
@@ -261,7 +273,7 @@ int main(int, char const**)
     const Settings settings(1000, 100, 50, 50, 50);
 
     // Create the population
-    Population<Params> pop(settings, generator, evaluator, crossover, mutator, terminator);
+    Population<Params> pop(settings, Generator(), evaluator, crossover, mutator, terminator);
 
 
     // Run the Genetic Algorithm
