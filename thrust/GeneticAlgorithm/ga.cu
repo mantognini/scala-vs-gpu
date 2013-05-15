@@ -1,5 +1,8 @@
 
-// TODO includes
+#include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
+#include <thrust/sequence.h>
+#include "stats.hpp"
 
 typedef float Real;
 
