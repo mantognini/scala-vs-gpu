@@ -158,7 +158,16 @@ public:
             // The evaluation of new entities was already done in step 3 to 6
             // So we only sort the population
 
-            // TODO implement me !
+            // Copy data to device
+            epopd = epoph;
+            fpopd = fpoph;
+
+            // Sort the data
+            thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
+
+            // Copy data back to host
+            epoph = epopd;
+            fpoph = fpopd;
 
 
             // Step 8.
