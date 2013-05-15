@@ -5,7 +5,6 @@
 #include <thrust/random.h>
 #include <thrust/generate.h>
 #include <thrust/sort.h>
-#include "stats.hpp"
 
 typedef float Real;
 
@@ -103,7 +102,11 @@ public:
         // Random generators
         thrust::default_random_engine rng;
 
+        unsigned int rounds = 0;
+
         do {
+            ++rounds;
+
             // Step 3.
             // -------
             //
@@ -189,6 +192,8 @@ public:
 
         } while (!terminator(epoph));
 
+        std::cout << "#rounds = " << rounds << std::endl;
+
         // Step 9.
         // -------
         //
@@ -206,7 +211,7 @@ public:
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
     struct Generator {
         Generator()
-            :rng(std::rand())
+            : rng(std::rand())
             , distX(MIN_X, MAX_X)
             , distY(MIN_Y, MAX_Y) {
         }
