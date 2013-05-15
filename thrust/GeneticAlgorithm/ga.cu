@@ -136,8 +136,17 @@ public:
             // Create CO new individuals with CrossOver
 
             // Replace the last CO entities before the N last ones (see comment at step 3)
+            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count) {
+                // Select two random entities from the living ones, that is in range [0, size-K[
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
+                const unsigned int first = uniform(rng);
+                const unsigned int second = uniform(rng);
 
-            // TODO implement me !
+                epoph[i] = crossover(epoph[first], epoph[second]);
+                fpoph[i] = evaluator(epoph[i]);
+            }
 
 
             // Step 6.
