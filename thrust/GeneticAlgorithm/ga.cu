@@ -3,7 +3,8 @@
 #include <thrust/device_vector.h>
 #include <thrust/sequence.h>
 #include <thrust/random.h>
-#include <thrust/functional.h>
+#include <thrust/generate.h>
+#include <thrust/sort.h>
 #include "stats.hpp"
 
 typedef float Real;
@@ -74,10 +75,7 @@ public:
      * @param settings settings for the algorithm
      */
     Population(Settings settings)
-        : settings(settings)
-        , rng(std::rand())
-        , distX(MIN_X, MAX_X)
-        , distY(MIN_Y, MAX_Y) {
+        : settings(settings) {
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
@@ -87,11 +85,13 @@ public:
         // -----------
         //
         // Generate a population & evaluate it
-        EntityPop epop;
-        FitnessPop fpop;
-        // TODO generate entities
+        EntityPop epop(settings.size);
+        FitnessPop fpop(settings.size);
+        thrust::generate(epop.begin(), epop.end(), generator);
+        // Evaluate it
+        thrust::transform(epop.begin(), epop.end(), fpop.begin(), evaluator);
         // Now sort it
-        // TODO sort the population
+        thrust::sort_by_key(fpop.begin(), fpop.end(), epop.begin());
 
         do {
             // Step 3.
@@ -159,23 +159,40 @@ public:
         return Params();
     }
 
-private:
+// private:
     // Private API
+    // But public to work with thrust / cuda ...
 
     static const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
 
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-    __host__ __device__
-    Params generator() {
-        return Params(distX(rng), distY(rng));
-    }
+    struct Generator {
+        Generator()
+            :rng(std::rand())
+            , distX(MIN_X, MAX_X)
+            , distY(MIN_Y, MAX_Y) {
+        }
+
+        __host__ __device__
+        Params operator()() {
+            return Params(distX(rng), distY(rng));
+        }
+
+    private:
+        // Random generators
+        thrust::default_random_engine rng;
+        thrust::uniform_real_distribution<Real> distX, distY;
+    } generator;
 
     // Evaluator; the biggest the better
-    __host__ __device__
-    Real evaluator(Params const& ps) {
-        // TODO implement me !
-        return Real(0);
-    }
+    struct Evaluator {
+        __host__ __device__
+        Real operator()(Params const& ps) {
+            Real x = ps.first, y = ps.second;
+
+            return std::sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45);
+        }
+    } evaluator;
 
     // CrossOver; takes the average of the two entities
     __host__ __device__
@@ -202,10 +219,6 @@ private:
 private:
     // Data
     Settings settings;
-
-    // Random generators
-    thrust::default_random_engine rng;
-    thrust::uniform_real_distribution<Real> distX, distY;
 };
 
 
