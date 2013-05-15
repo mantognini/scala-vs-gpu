@@ -51,15 +51,15 @@ class Population
 public:
     // Type Aliases
 
-    // TODO define EntityFitness & Pop
-    // typedef pair<E, double> EntityFitness;
-    // typedef vector<EntityFitness> Pop;
+    // Define Entity & Fitness Pop using SoA (Structure of Arrays)
+    typedef thrust::device_vector<E> EntityPop;
+    typedef thrust::device_vector<Real> FitnessPop;
 
-    typedef typename E (*Generator)();
-    typedef typename Real (*Evaluator)(E const&); ///< the bigger the better it is
-    typedef typename E (*CrossOver)(E const&, E const&);
-    typedef typename E (*Mutator)(E const&);
-    typedef typename bool (*Terminator)(Pop const&);
+    typedef E (*Generator)();
+    typedef Real (*Evaluator)(E const&); ///< the bigger the better it is
+    typedef E (*CrossOver)(E const&, E const&);
+    typedef E (*Mutator)(E const&);
+    typedef bool (*Terminator)(EntityPop const&);
 
 public:
     // Public API
@@ -92,7 +92,8 @@ public:
         // -----------
         //
         // Generate a population & evaluate it
-        Pop pop; // collection of (entitiy, fitness)
+        EntityPop epop;
+        FitnessPop fpop;
         // TODO generate entities
         // Now sort it
         // TODO sort the population
@@ -174,8 +175,8 @@ private:
 };
 
 
-// TODO define Params
-// typedef pair<Real, Real> Params;
+// Define Params
+typedef thrust::pair<Real, Real> Params;
 
 
 template <typename E>
