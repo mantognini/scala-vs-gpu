@@ -184,8 +184,7 @@ public:
         //
         // Identify the best individual from the current population
 
-        // TODO implement me !
-        return Params();
+        return epoph.front(); // the population is already sorted;
     }
 
 // private:
