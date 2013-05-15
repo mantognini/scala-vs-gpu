@@ -30,7 +30,7 @@ struct Settings {
     const unsigned int K; ///< number of killed per generation
     const unsigned int M; ///< number of mutated per generation
     const unsigned int N; ///< number of new individuals (random) per generation
-    const unsigned int CO; ///< number of new indifiduals (cross over) per generation
+    const unsigned int CO; ///< number of new individuals (cross over) per generation
 
     /// Make sure the settings are valid
     bool isValid() const {
