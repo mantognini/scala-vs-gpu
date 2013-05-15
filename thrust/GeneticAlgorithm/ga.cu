@@ -9,6 +9,7 @@
 
 typedef float Real;
 
+__host__ __device__
 bool isClose(Real value, Real target, Real flex)
 {
     return (1 - flex) * target <= value && value <= (1 + flex) * target;
@@ -253,8 +254,33 @@ public:
 
     // Terminator; stop evolution when population has (relatively) converged
     bool terminator(EntityPopHost const& pop) {
-        // TODO implement me !
-        return true;
+        // Compute average on x and y axes
+        Real avgX(0), avgY(0);
+        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
+            Real x = (*itps).first;
+            Real y = (*itps).second;
+
+            avgX += x;
+            avgY += y;
+        }
+        avgX /= pop.size();
+        avgY /= pop.size();
+
+        // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
+        const unsigned int maxOuts = pop.size() * 0.25;
+        const Real EPSILON = 0.02;
+
+        unsigned int outs = 0;
+        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
+            Real x = (*itps).first;
+            Real y = (*itps).second;
+
+            if (!isClose(x, avgX, EPSILON) || !isClose(y, avgY, EPSILON)) {
+                ++outs;
+            }
+        }
+
+        return outs <= maxOuts;
     }
 
 private:
