@@ -198,10 +198,7 @@ struct Action {
 
 std::ostream& operator<<(std::ostream& out, Params const& ps)
 {
-    // TODO get x and y
-    // Real x, y;
-
-    return out << x << "," << y;
+    return out << ps.first << "," << ps.second;
 }
 
 #include "stats.hpp"
