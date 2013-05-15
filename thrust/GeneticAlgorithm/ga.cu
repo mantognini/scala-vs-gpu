@@ -47,21 +47,23 @@ struct Settings {
     }
 };
 
-template <typename E>
+
 class Population
 {
 public:
     // Type Aliases
 
     // Define Entity & Fitness Pop using SoA (Structure of Arrays)
-    typedef thrust::device_vector<E> EntityPop;
+    typedef thrust::pair<Real, Real> Params;
+    typedef thrust::device_vector<Params> EntityPop;
     typedef thrust::device_vector<Real> FitnessPop;
 
-    typedef typename thrust::unary_function<void, E> Generator;
-    typedef Real (*Evaluator)(E const&); ///< the bigger the better it is
-    typedef E (*CrossOver)(E const&, E const&);
-    typedef E (*Mutator)(E const&);
-    typedef bool (*Terminator)(EntityPop const&);
+
+    // Equation :
+    //
+    // Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
+    //
+    // Range : (x, y) in [9, 100] x [7, 50]
 
 public:
     // Public API
@@ -70,25 +72,16 @@ public:
      * Ctor
      *
      * @param settings settings for the algorithm
-     * @param generator Generate new Entity randomly;
-     *        the ownership of those objects is transfered to this Population
-     * @param evaluator Fitness function;
-     *        the bigger the better it is
-     * @param crossover Takes two entities to produce a new one
-     * @param mutator Mutate an entity
-     * @param terminator Determine if the population has converged or not
      */
-    Population(Settings settings, Generator generator, Evaluator evaluator, CrossOver crossover, Mutator mutator, Terminator terminator)
+    Population(Settings settings)
         : settings(settings)
-        , generator(generator)
-        , evaluator(evaluator)
-        , crossover(crossover)
-        , mutator(mutator)
-        , terminator(terminator) {
+        , rng(std::rand())
+        , distX(MIN_X, MAX_X)
+        , distY(MIN_Y, MAX_Y) {
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
-    E run() {
+    Params run() {
 
         // Step 1 + 2.
         // -----------
@@ -163,31 +156,65 @@ public:
         // Identify the best individual from the current population
 
         // TODO implement me !
-        return E();
+        return Params();
+    }
+
+private:
+    // Private API
+
+    static const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
+
+    // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
+    __host__ __device__
+    Params generator() {
+        return Params(distX(rng), distY(rng));
+    }
+
+    // Evaluator; the biggest the better
+    __host__ __device__
+    Real evaluator(Params const& ps) {
+        // TODO implement me !
+        return Real(0);
+    }
+
+    // CrossOver; takes the average of the two entities
+    __host__ __device__
+    Params crossover(Params const& as, Params const& bs) {
+        // TODO implement me !
+        return Params();
+    }
+
+
+    // Mutator; takes a normal distribution to shift the current value
+    __host__ __device__
+    Params mutator(Params const& ps) {
+        // TODO implement me !
+        return ps;
+    }
+
+
+    // Terminator; stop evolution when population has (relatively) converged
+    bool terminator(EntityPop const& pop) {
+        // TODO implement me !
+        return true;
     }
 
 private:
     // Data
     Settings settings;
-    Generator generator;
-    Evaluator evaluator;
-    CrossOver crossover;
-    Mutator mutator;
-    Terminator terminator;
+
+    // Random generators
+    thrust::default_random_engine rng;
+    thrust::uniform_real_distribution<Real> distX, distY;
 };
 
 
-// Define Params
-typedef thrust::pair<Real, Real> Params;
-
-
-template <typename E>
 struct Action {
-    Action(Population<E>& popref)
+    Action(Population& popref)
         : popref(popref) {
     }
 
-    E operator()() const {
+    Population::Params operator()() const {
         return popref.run();
     }
 
@@ -195,77 +222,15 @@ struct Action {
         return "ø"; // no explicit parameters for the computation
     }
 
-    Population<E>& popref;
+    Population& popref;
 };
 
-std::ostream& operator<<(std::ostream& out, Params const& ps)
+std::ostream& operator<<(std::ostream& out, Population::Params const& ps)
 {
     return out << ps.first << "," << ps.second;
 }
 
 #include "stats.hpp"
-
-// Equation :
-//
-// Sin[x - 15] / x * (y - 7) (y - 30) (y - 50) (x - 15) (x - 45)
-//
-// Range : (x, y) in [9, 100] x [7, 50]
-
-static const Real MIN_X = 9, MAX_X = 100, MIN_Y = 7, MAX_Y = 50;
-
-// Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
-struct Generator : public thrust::unary_function<void, Params> {
-    Generator()
-        : rng(std::rand())
-        , distX(MIN_X, MAX_X)
-        , distY(MIN_Y, MAX_Y) {
-    }
-
-    __host__ __device__
-    Params operator()() {
-        return Params(distX(rng), distY(rng));
-    }
-
-private:
-    // Random generators
-    thrust::default_random_engine rng;
-    thrust::uniform_real_distribution<Real> distX, distY;
-};
-
-
-// Evaluator; the biggest the better
-__host__ __device__
-Real evaluator(Params const& ps)
-{
-    // TODO implement me !
-    return Real(0);
-}
-
-// CrossOver; takes the average of the two entities
-__host__ __device__
-Params crossover(Params const& as, Params const& bs)
-{
-    // TODO implement me !
-    return Params();
-}
-
-
-// Mutator; takes a normal distribution to shift the current value
-__host__ __device__
-Params mutator(Params const& ps)
-{
-    // TODO implement me !
-    return ps;
-}
-
-
-// Terminator; stop evolution when population has (relatively) converged
-__host__ __device__
-bool terminator(Population<Params>::EntityPop const&)
-{
-    // TODO implement me !
-    return true;
-}
 
 int main(int, char const**)
 {
@@ -273,11 +238,10 @@ int main(int, char const**)
     const Settings settings(1000, 100, 50, 50, 50);
 
     // Create the population
-    Population<Params> pop(settings, Generator(), evaluator, crossover, mutator, terminator);
-
+    Population pop(settings);
 
     // Run the Genetic Algorithm
-    stats<Action<Params>, Params>(Action<Params>(pop), 100);
+    stats<Action, Population::Params>(Action(pop), 100);
 
     return 0;
 }
