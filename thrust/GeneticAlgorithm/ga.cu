@@ -5,6 +5,7 @@
 #include <thrust/random.h>
 #include <thrust/generate.h>
 #include <thrust/sort.h>
+#include <thrust/extrema.h>
 
 typedef float Real;
 
@@ -125,6 +126,7 @@ public:
             // Mutate some individuals of the population
 
             // Use prob of mutation instead of fixed settings (if close to max, then probably not mutated)
+            mutator.maxfitness = *thrust::max_element(fpopd.begin(), fpopd.end());
             thrust::transform_if(
                 epopd.begin(), epopd.end(),     // data input
                 fpopd.begin(),                  // controller input
@@ -217,6 +219,8 @@ public:
         bool operator()(Real fitness) {
             return true; // TODO implement me
         }
+
+        Real maxfitness; // must be updated before calling mutate decider !
     } mutator;
 
     struct IsOut {
