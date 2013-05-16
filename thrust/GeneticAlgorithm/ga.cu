@@ -75,12 +75,16 @@ public:
      */
     Population(Settings settings)
         : settings(settings) {
+        std::srand(std::time(0));
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     Params run() {
         // Use a counter for random number so that the random number are really random !
         thrust::counting_iterator<std::size_t> randomCount(0); // (for generator only)
+
+        // And init the random generator of generator
+        generator.setSeed(rand());
 
         // Step 1 + 2.
         // -----------
@@ -94,9 +98,6 @@ public:
         thrust::transform(epopd.begin(), epopd.end(), fpopd.begin(), evaluator);
         // Now sort it
         thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
-
-        // Random generators
-        thrust::default_random_engine rng;
 
         unsigned int rounds = 0;
 
@@ -168,6 +169,10 @@ public:
             , distY(MIN_Y, MAX_Y) {
         }
 
+        void setSeed(unsigned int seed) {
+            rng.seed(seed);
+        }
+
         __host__ __device__
         Params operator()(std::size_t n) { // The n is used to drop some random numbers
             rng.discard(2 * n); // since we take two random numbers
@@ -189,17 +194,6 @@ public:
             return std::sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45);
         }
     } evaluator;
-
-    // CrossOver; takes the average of the two entities
-    __host__ __device__
-    Params crossover(Params const& as, Params const& bs) {
-        Real ax = as.first,
-             ay = as.second,
-             bx = bs.first,
-             by = bs.second;
-
-        return Params((ax + bx) / Real(2), (ay + by) / Real(2));
-    }
 
 
     // Mutator; takes a normal distribution to shift the current value
