@@ -82,6 +82,8 @@ public:
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     Params run() {
+        // Use a counter for random number so that the random number are really random !
+        thrust::counting_iterator<std::size_t> randomCount(0); // (for generator only)
 
         // Step 1 + 2.
         // -----------
@@ -89,7 +91,8 @@ public:
         // Generate a population & evaluate it
         EntityPopDevice epopd(settings.size);
         FitnessPopDevice fpopd(settings.size);
-        thrust::generate(epopd.begin(), epopd.end(), generator);
+        thrust::transform(randomCount, randomCount + settings.size, epopd.begin(), generator);
+        randomCount += settings.size;
         // Evaluate it
         thrust::transform(epopd.begin(), epopd.end(), fpopd.begin(), evaluator);
         // Now sort it
@@ -160,7 +163,8 @@ public:
 
             // Replace the last N entities (see comment at step 3)
             for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
-                epoph[i] = generator();
+                epoph[i] = generator(*randomCount);
+                ++randomCount;
                 fpoph[i] = evaluator(epoph[i]);
             }
 
@@ -211,13 +215,14 @@ public:
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
     struct Generator {
         Generator()
-            : rng(std::rand())
+            : rng(std::time(0))
             , distX(MIN_X, MAX_X)
             , distY(MIN_Y, MAX_Y) {
         }
 
         __host__ __device__
-        Params operator()() {
+        Params operator()(std::size_t n) { // The n is used to drop some random numbers
+            rng.discard(2 * n); // since we take two random numbers
             return Params(distX(rng), distY(rng));
         }
 
