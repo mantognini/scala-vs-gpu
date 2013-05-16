@@ -124,9 +124,14 @@ public:
             //
             // Mutate some individuals of the population
 
-            // TODO use prob of mutation instead of fixed settings.
-            // use increasing prob of mutation when the entity is far from max
-
+            // Use prob of mutation instead of fixed settings (if close to max, then probably not mutated)
+            thrust::transform_if(
+                epopd.begin(), epopd.end(),     // data input
+                fpopd.begin(),                  // controller input
+                epopd.begin(),                  // data output (in-place)
+                mutator,                        // mapper             [ operator(Params) ]
+                mutator                         // controller         [ operator(Real)   ]
+            );
 
             // Step 6.
             // -------
@@ -199,11 +204,20 @@ public:
 
 
     // Mutator; takes a normal distribution to shift the current value
-    __host__ __device__
-    Params mutator(Params const& ps) {
-        // TODO implement me !
-        return ps;
-    }
+    struct Mutator {
+        // Mutate action
+        __host__ __device__
+        Params operator()(Params const& ps) {
+            // TODO implement me !
+            return ps;
+        }
+
+        // Mutate decider
+        __host__ __device__
+        bool operator()(Real fitness) {
+            return true; // TODO implement me
+        }
+    } mutator;
 
     struct IsOut {
         IsOut(Real avgX, Real avgY, Real epsilon)
