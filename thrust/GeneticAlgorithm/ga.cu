@@ -28,12 +28,9 @@ struct SumPair {
 };
 
 struct Settings {
-    Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
+    Settings(unsigned int size, unsigned int K)
         : size(size)
-        , K(K)
-        , M(M)
-        , N(N)
-        , CO(CO) {
+        , K(K) {
         if (!isValid()) {
             throw new std::domain_error("Invalid settings");
         }
@@ -41,23 +38,10 @@ struct Settings {
 
     const unsigned int size; ///< population size
     const unsigned int K; ///< number of killed per generation
-    const unsigned int M; ///< number of mutated per generation
-    const unsigned int N; ///< number of new individuals (random) per generation
-    const unsigned int CO; ///< number of new individuals (cross over) per generation
 
     /// Make sure the settings are valid
     bool isValid() const {
-        // K, M < size
-        if (K >= size || M >= size) {
-            return false;
-        }
-
-        // N + CO = K
-        if (N + CO != K) {
-            return false;
-        }
-
-        return true;
+        return K < size;
     }
 };
 
@@ -122,14 +106,14 @@ public:
             // Step 3 + 4
             // ----------
             //
-            // Remove the worse K individuals & generate N new individuals randomly
+            // Remove the worse K individuals & generate K new individuals randomly
 
             // Replace the last N entities
-            thrust::transform(randomCount, randomCount + settings.N, epopd.end() - settings.N - 1, generator);
-            randomCount += settings.N;
+            thrust::transform(randomCount, randomCount + settings.K, epopd.end() - settings.K - 1, generator);
+            randomCount += settings.K;
             // Evaluate it
-            thrust::transform(epopd.end() - settings.N - 1, epopd.end(),
-                              fpopd.begin()  - settings.N - 1,
+            thrust::transform(epopd.end() - settings.K - 1, epopd.end(),
+                              fpopd.begin()  - settings.K - 1,
                               evaluator);
 
             // Step 5.
@@ -290,7 +274,7 @@ std::ostream& operator<<(std::ostream& out, Population::Params const& ps)
 int main(int, char const**)
 {
     // Settings
-    const Settings settings(1000, 100, 50, 50, 50);
+    const Settings settings(1000, 100);
 
     // Create the population
     Population pop(settings);
