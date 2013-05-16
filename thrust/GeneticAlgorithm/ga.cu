@@ -6,6 +6,8 @@
 #include <thrust/generate.h>
 #include <thrust/sort.h>
 #include <thrust/extrema.h>
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/tuple.h>
 
 typedef float Real;
 
@@ -13,6 +15,21 @@ __host__ __device__
 bool isClose(Real value, Real target, Real flex)
 {
     return (1 - flex) * target <= value && value <= (1 + flex) * target;
+}
+
+__host__ __device__
+Real clamp(Real value, Real min, Real max)
+{
+    const Real diff = max - min;
+    while (value < min) {
+        value += diff;
+    }
+
+    while (value > max) {
+        value -= diff;
+    }
+
+    return value;
 }
 
 template <typename T, typename U>
@@ -84,8 +101,9 @@ public:
         // Use a counter for random number so that the random number are really random !
         thrust::counting_iterator<std::size_t> randomCount(0); // (for generator only)
 
-        // And init the random generator of generator
+        // And init the random generator of generator and mutator
         generator.setSeed(rand());
+        mutator.setSeed(rand());
 
         // Step 1 + 2.
         // -----------
@@ -119,6 +137,7 @@ public:
                 fpopd.begin()  - settings.K - 1,           // ouput
                 evaluator                                  // mapper
             );
+            thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
             // Step 5.
             // -------
@@ -126,9 +145,21 @@ public:
             // Mutate some individuals of the population
 
             // Use prob of mutation instead of fixed settings (if close to max, then probably not mutated)
-            mutator.maxfitness = *thrust::max_element(fpopd.begin(), fpopd.end());
+            mutator.maxfitness = fpopd.front();
+            mutator.best = epopd.front();
             thrust::transform_if(
-                epopd.begin(), epopd.end(),     // data input
+                thrust::make_zip_iterator(                  // data input start
+                    thrust::make_tuple(
+                        epopd.begin(),                              // actual data
+                        thrust::counting_iterator<std::size_t>(0)   // random 'index'
+                    )
+                ),
+                thrust::make_zip_iterator(                  // data input end
+                    thrust::make_tuple(
+                        epopd.end(),
+                        thrust::counting_iterator<std::size_t>(epopd.size())
+                    )
+                ),
                 fpopd.begin(),                  // controller input
                 epopd.begin(),                  // data output (in-place)
                 mutator,                        // mapper             [ operator(Params) ]
@@ -152,7 +183,7 @@ public:
             //
             // Goto Step 3 if the population is not stable yet
 
-        } while (!terminator(epopd));
+        } while (!terminator(epopd) && rounds < 10000);
 
         std::cout << "#rounds = " << rounds << std::endl;
 
@@ -173,7 +204,7 @@ public:
     // Generator; random parameters in [MIN_X, MAX_X] x [MIN_Y, MAX_Y]
     struct Generator {
         Generator()
-            : rng(std::time(0))
+            : rng(std::rand())
             , distX(MIN_X, MAX_X)
             , distY(MIN_Y, MAX_Y) {
         }
@@ -207,20 +238,39 @@ public:
 
     // Mutator; takes a normal distribution to shift the current value
     struct Mutator {
+        Mutator()
+            : rng(std::rand()) {
+        }
+
         // Mutate action
         __host__ __device__
-        Params operator()(Params const& ps) {
-            // TODO implement me !
+        Params operator()(thrust::tuple<Params, std::size_t> const& tuple) {
+            Params ps = thrust::get<0>(tuple);
+            const std::size_t n = thrust::get<1>(tuple);
+            rng.discard(2 * n);
+            thrust::normal_distribution<Real> distX(best.first, (MAX_X - MIN_X) / 8);
+            thrust::normal_distribution<Real> distY(best.second, (MAX_Y - MIN_Y) / 8);
+            ps.first = clamp(ps.first + distX(rng), MIN_X, MAX_X);
+            ps.second = clamp(ps.second + distY(rng), MIN_Y, MAX_Y);
             return ps;
         }
 
         // Mutate decider
         __host__ __device__
         bool operator()(Real fitness) {
-            return true; // TODO implement me
+            return fitness / maxfitness < 0.5;
+        }
+
+        void setSeed(unsigned int seed) {
+            rng.seed(seed);
         }
 
         Real maxfitness; // must be updated before calling mutate decider !
+        Params best;
+
+    private:
+        // Random generators
+        thrust::default_random_engine rng;
     } mutator;
 
     struct IsOut {
@@ -246,9 +296,10 @@ public:
         Real avgX = sum.first / pop.size();
         Real avgY = sum.second / pop.size();
 
-        // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
-        const std::size_t maxOuts = pop.size() * 0.25;
-        const Real EPSILON = 0.02;
+        // Stop when P % of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
+        const Real P = 75;
+        const std::size_t maxOuts = pop.size() * (Real(1) - P / Real(100));
+        const Real EPSILON = 0.05;
 
         const IsOut predicate(avgX, avgY, EPSILON);
         const std::size_t outs = thrust::count_if(pop.begin(), pop.end(), predicate);
