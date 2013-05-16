@@ -1,4 +1,4 @@
-all: release debug
+all: release
 
 release: bindir ga.cu
 	nvcc -O3 ga.cu -o bin/ga -lsfml-system -I ../../common/include
