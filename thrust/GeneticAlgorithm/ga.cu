@@ -111,10 +111,6 @@ public:
         // Now sort it
         thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
-        // Data storage on the host
-        EntityPopHost epoph(settings.size);
-        FitnessPopHost fpoph(settings.size);
-
         // Random generators
         thrust::default_random_engine rng;
 
@@ -122,10 +118,6 @@ public:
 
         do {
             ++rounds;
-
-            // Copy data back to host
-            epoph = epopd;
-            fpoph = fpopd;
 
             // Step 3.
             // -------
@@ -149,8 +141,9 @@ public:
                 const unsigned int index = uniform(rng);
 
                 // mutate the entity and recompute its fitness
-                epoph[index] = mutator(epoph[index]);
-                fpoph[index] = evaluator(epoph[index]);
+                Params ps = mutator(epopd[index]);
+                epopd[index] = ps;
+                fpopd[index] = evaluator(ps);
             }
 
 
@@ -168,8 +161,9 @@ public:
                 const unsigned int first = uniform(rng);
                 const unsigned int second = uniform(rng);
 
-                epoph[i] = crossover(epoph[first], epoph[second]);
-                fpoph[i] = evaluator(epoph[i]);
+                Params ps = crossover(epopd[first], epopd[second]);
+                epopd[i] = ps;
+                fpopd[i] = evaluator(ps);
             }
 
 
@@ -179,11 +173,12 @@ public:
             // Generate N new individuals randomly
 
             // Replace the last N entities (see comment at step 3)
-            for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
-                epoph[i] = generator(*randomCount);
-                ++randomCount;
-                fpoph[i] = evaluator(epoph[i]);
-            }
+            thrust::transform(randomCount, randomCount + settings.N, epopd.end() - settings.N - 1, generator);
+            randomCount += settings.N;
+            // Evaluate it
+            thrust::transform(epopd.end() - settings.N - 1, epopd.end(),
+                              fpopd.begin()  - settings.N - 1,
+                              evaluator);
 
 
             // Step 7.
@@ -193,10 +188,6 @@ public:
 
             // The evaluation of new entities was already done in step 3 to 6
             // So we only sort the population
-
-            // Copy data to device
-            epopd = epoph;
-            fpopd = fpoph;
 
             // Sort the data
             thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
@@ -216,7 +207,7 @@ public:
         //
         // Identify the best individual from the current population
 
-        return epoph.front(); // the population is already sorted;
+        return epopd.front(); // the population is already sorted;
     }
 
 // private:
