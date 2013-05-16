@@ -119,60 +119,12 @@ public:
         do {
             ++rounds;
 
-            // Step 3.
-            // -------
+            // Step 3 + 4
+            // ----------
             //
-            // Remove the worse K individuals
+            // Remove the worse K individuals & generate N new individuals randomly
 
-            // Skipped -> replace those entities with step 5 & 6
-
-
-            // Step 4.
-            // -------
-            //
-            // Mutate M individuals of the population
-
-            // Choose M random individuals from the living ones, that is in range [0, size-K[
-
-            for (unsigned int count = 0; count < settings.M; ++count) {
-                const unsigned int rangeStart = 0;
-                const unsigned int rangeEnd = settings.size - settings.K - 1;
-                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
-                const unsigned int index = uniform(rng);
-
-                // mutate the entity and recompute its fitness
-                Params ps = mutator(epopd[index]);
-                epopd[index] = ps;
-                fpopd[index] = evaluator(ps);
-            }
-
-
-            // Step 5.
-            // -------
-            //
-            // Create CO new individuals with CrossOver
-
-            // Replace the last CO entities before the N last ones (see comment at step 3)
-            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count) {
-                // Select two random entities from the living ones, that is in range [0, size-K[
-                const unsigned int rangeStart = 0;
-                const unsigned int rangeEnd = settings.size - settings.K - 1;
-                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
-                const unsigned int first = uniform(rng);
-                const unsigned int second = uniform(rng);
-
-                Params ps = crossover(epopd[first], epopd[second]);
-                epopd[i] = ps;
-                fpopd[i] = evaluator(ps);
-            }
-
-
-            // Step 6.
-            // -------
-            //
-            // Generate N new individuals randomly
-
-            // Replace the last N entities (see comment at step 3)
+            // Replace the last N entities
             thrust::transform(randomCount, randomCount + settings.N, epopd.end() - settings.N - 1, generator);
             randomCount += settings.N;
             // Evaluate it
@@ -180,8 +132,16 @@ public:
                               fpopd.begin()  - settings.N - 1,
                               evaluator);
 
+            // Step 5.
+            // -------
+            //
+            // Mutate some individuals of the population
 
-            // Step 7.
+            // TODO use prob of mutation instead of fixed settings.
+            // use increasing prob of mutation when the entity is far from max
+
+
+            // Step 6.
             // -------
             //
             // Evaluate the current population
@@ -193,7 +153,7 @@ public:
             thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
 
-            // Step 8.
+            // Step 7.
             // -------
             //
             // Goto Step 3 if the population is not stable yet
@@ -202,7 +162,7 @@ public:
 
         std::cout << "#rounds = " << rounds << std::endl;
 
-        // Step 9.
+        // Step 8.
         // -------
         //
         // Identify the best individual from the current population
