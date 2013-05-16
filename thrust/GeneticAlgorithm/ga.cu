@@ -14,6 +14,19 @@ bool isClose(Real value, Real target, Real flex)
     return (1 - flex) * target <= value && value <= (1 + flex) * target;
 }
 
+template <typename T, typename U>
+struct SumPair {
+    typedef typename thrust::pair<T, U> Pair;
+
+    SumPair() {
+    }
+
+    __host__ __device__
+    Pair operator()(Pair const& as, Pair const& bs) const {
+        return Pair(as.first + bs.first, as.second + bs.second);
+    }
+};
+
 struct Settings {
     Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
         : size(size)
@@ -98,9 +111,9 @@ public:
         // Now sort it
         thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
-        // Copy data back to host
-        EntityPopHost epoph = epopd;
-        FitnessPopHost fpoph = fpopd;
+        // Data storage on the host
+        EntityPopHost epoph(settings.size);
+        FitnessPopHost fpoph(settings.size);
 
         // Random generators
         thrust::default_random_engine rng;
@@ -109,6 +122,10 @@ public:
 
         do {
             ++rounds;
+
+            // Copy data back to host
+            epoph = epopd;
+            fpoph = fpopd;
 
             // Step 3.
             // -------
@@ -184,17 +201,13 @@ public:
             // Sort the data
             thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
-            // Copy data back to host
-            epoph = epopd;
-            fpoph = fpopd;
-
 
             // Step 8.
             // -------
             //
             // Goto Step 3 if the population is not stable yet
 
-        } while (!terminator(epoph));
+        } while (!terminator(epopd));
 
         std::cout << "#rounds = " << rounds << std::endl;
 
@@ -261,34 +274,35 @@ public:
         return ps;
     }
 
+    struct IsOut {
+        IsOut(Real avgX, Real avgY, Real epsilon)
+            : avgX(avgX)
+            , avgY(avgY)
+            , epsilon(epsilon) {
+        }
+
+        __host__ __device__
+        bool operator()(Params const& ps) const {
+            return !isClose(ps.first, avgX, epsilon) || !isClose(ps.second, avgY, epsilon);
+        }
+
+        const Real avgX, avgY, epsilon;
+    };
 
     // Terminator; stop evolution when population has (relatively) converged
-    bool terminator(EntityPopHost const& pop) {
+    bool terminator(EntityPopDevice const& pop) {
         // Compute average on x and y axes
-        Real avgX(0), avgY(0);
-        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
-            Real x = (*itps).first;
-            Real y = (*itps).second;
-
-            avgX += x;
-            avgY += y;
-        }
-        avgX /= pop.size();
-        avgY /= pop.size();
+        const SumPair<Real, Real> reducer;
+        Params sum = thrust::reduce(pop.begin(), pop.end(), Params(0, 0), reducer);
+        Real avgX = sum.first / pop.size();
+        Real avgY = sum.second / pop.size();
 
         // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
-        const unsigned int maxOuts = pop.size() * 0.25;
+        const std::size_t maxOuts = pop.size() * 0.25;
         const Real EPSILON = 0.02;
 
-        unsigned int outs = 0;
-        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
-            Real x = (*itps).first;
-            Real y = (*itps).second;
-
-            if (!isClose(x, avgX, EPSILON) || !isClose(y, avgY, EPSILON)) {
-                ++outs;
-            }
-        }
+        const IsOut predicate(avgX, avgY, EPSILON);
+        const std::size_t outs = thrust::count_if(pop.begin(), pop.end(), predicate);
 
         return outs <= maxOuts;
     }
