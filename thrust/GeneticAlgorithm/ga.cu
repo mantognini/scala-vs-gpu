@@ -112,10 +112,12 @@ public:
             // Replace the last N entities
             thrust::transform(randomCount, randomCount + settings.K, epopd.end() - settings.K - 1, generator);
             randomCount += settings.K;
-            // Evaluate it
-            thrust::transform(epopd.end() - settings.K - 1, epopd.end(),
-                              fpopd.begin()  - settings.K - 1,
-                              evaluator);
+            // Evaluate tehm
+            thrust::transform(
+                epopd.end() - settings.K - 1, epopd.end(), // input
+                fpopd.begin()  - settings.K - 1,           // ouput
+                evaluator                                  // mapper
+            );
 
             // Step 5.
             // -------
