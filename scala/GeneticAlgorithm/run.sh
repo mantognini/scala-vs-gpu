@@ -16,6 +16,6 @@ EXTLIBS="`dirname $0`/../../common/scala/lib"
 java $javaopts \
      -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"$EXTLIBS/workstealing_2.10-0.1.jar":"$EXTLIBS/workstealing_2.10-0.1-test.jar":"`dirname $0`/target/scala-2.10/classes/" \
      $workstealingopts \
-     "GeneticAlgorithmBenchmark" \
+     "workstealing.GeneticAlgorithmBenchmark" 100 \
 | tee data.csv
    
