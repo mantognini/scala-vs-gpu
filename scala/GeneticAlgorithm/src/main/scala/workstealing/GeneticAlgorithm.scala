@@ -11,13 +11,16 @@ trait Population[Entity] {
     // -------
     //
     // Make sure parameters are valid
-    val pop = ???
+    assert(size > 0, "invalid size parameter")
+    assert(K >= 0 && K < size, "invalid K parameter")
+    assert(M >= 0 && M < size, "invalid M parameter")
+    assert(N >= 0 && CO >= 0 && N + CO == K, "invalid N or CO parameter")
 
     // Step 1 + 2.
     // -----------
     //
     // Generate a population & evaluate it
-    ???
+    val pop = ???
 
     // Now sort it
     ???
