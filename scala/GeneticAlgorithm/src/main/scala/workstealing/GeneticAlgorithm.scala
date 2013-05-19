@@ -126,6 +126,19 @@ trait Population[Entity] {
   protected def terminator(pop: Pop): Boolean
 }
 
+object EquationMaximizer extends Population[(Double, Double)] {
+  private val MIN_X = 9
+  private val MAX_X = 100
+  private val MIN_Y = 7
+  private val MAX_Y = 50
+
+  override protected def generator = (
+    ThreadLocalRandom.current.nextDouble(MIN_X, MAX_X),
+    ThreadLocalRandom.current.nextDouble(MIN_Y, MAX_Y)
+  )
+
+}
+
 object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
 
   val size = sys.props("size").toInt
