@@ -7,7 +7,7 @@ import java.util.concurrent.{ ThreadLocalRandom }
 
 trait Population[E] {
   // PUBLIC API
-  
+
   type Entity = E
 
   def run(size: Int, K: Int, M: Int, N: Int, CO: Int): Entity = {
@@ -143,20 +143,46 @@ object EquationMaximizer extends Population[(Double, Double)] {
     val (x, y) = xy
     Math.sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45)
   }
-  
+
   override protected def crossover(axy: Entity, bxy: Entity): Entity = {
     val (x1, y1) = axy
     val (x2, y2) = bxy
-    
+
     ((x1 + x2) / 2, (y1 + y2) / 2)
   }
-  
+
   override protected def mutator(xy: Entity) = xy // TODO implement me (or not)
 
-  private var count = 0
+//  var counts = 0
   override protected def terminator(pop: Pop) = {
-    count += 1
-    count > 1000
+    val parpop = new ParArray[EntityFitness](pop, Workstealing.DefaultConfig)
+
+    // Compute average on x and y axes
+    val zeros: Entity = (0, 0)
+    val sum = parpop.aggregate(zeros) {
+      case (a, b) => (a._1 + b._1, a._2 + b._2)
+    } {
+      case (s, e) => (s._1 + e._1._1, s._2 + e._1._2)
+    }
+    val µX = sum._1 / pop.size
+    val µY = sum._2 / pop.size
+
+    // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
+    val maxOuts = (pop.size * 0.75).toInt
+    val ε = 0.02
+
+    val outs = parpop.count { ef =>
+      val (x, y) = ef._1
+
+      !isClose(x, µX, ε) || !isClose(y, µY, ε)
+    }
+
+//    counts += 1
+    outs <= maxOuts // || counts >= 10000
+  }
+
+  private def isClose(value: Double, target: Double, flex: Double) = {
+    (1 - flex) * target <= value && value <= (1 + flex) * target
   }
 }
 
@@ -169,6 +195,7 @@ object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
   val CO = sys.props("CO").toInt
 
   def run() {
+//    EquationMaximizer.counts = 0
     val max = EquationMaximizer.run(size, K, M, N, CO)
   }
 
