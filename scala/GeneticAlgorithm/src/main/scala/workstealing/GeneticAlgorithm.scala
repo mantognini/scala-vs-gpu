@@ -137,6 +137,11 @@ object EquationMaximizer extends Population[(Double, Double)] {
     ThreadLocalRandom.current.nextDouble(MIN_Y, MAX_Y)
   )
 
+  override protected def evaluator(xy: (Double, Double)) = {
+    val (x, y) = xy
+    Math.sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45)
+  }
+
 }
 
 object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
