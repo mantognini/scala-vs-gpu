@@ -8,6 +8,7 @@
 #include <thrust/extrema.h>
 #include <thrust/iterator/zip_iterator.h>
 #include <thrust/tuple.h>
+#include <thrust/count.h>
 
 typedef float Real;
 
