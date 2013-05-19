@@ -80,7 +80,9 @@ trait Population[Entity] {
       // Generate N new individuals randomly
 
       // Replace the last N entities (see comment at step 3)
-      ???
+      new ParRange(size - N until size, Workstealing.DefaultConfig) foreach { n =>
+        pop.update(n, withFitness(generator))
+      }
 
       // Step 7.
       // -------
