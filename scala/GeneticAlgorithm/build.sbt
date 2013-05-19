@@ -1,4 +1,4 @@
-name := "mandelbrot"
+name := "geneticalgorithm"
 
 scalaVersion := "2.10.1"
 
