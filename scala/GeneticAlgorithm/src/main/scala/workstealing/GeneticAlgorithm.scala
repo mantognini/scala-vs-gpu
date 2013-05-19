@@ -150,6 +150,8 @@ object EquationMaximizer extends Population[(Double, Double)] {
     
     ((x1 + x2) / 2, (y1 + y2) / 2)
   }
+  
+  override protected def mutator(xy: Entity) = xy // TODO implement me (or not)
 
 }
 
