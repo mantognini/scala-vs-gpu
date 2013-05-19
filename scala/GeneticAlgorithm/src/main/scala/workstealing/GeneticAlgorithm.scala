@@ -91,7 +91,7 @@ trait Population[Entity] {
 
       // The evaluation of new entities was already done in step 3 to 6
       // So we only sort the population
-      ???
+      pop = pop sortWith { _._2 > _._2 } // use fitness to sort
 
       // Step 8.
       // -------
@@ -105,7 +105,7 @@ trait Population[Entity] {
     // -------
     //
     // Identify the best individual from the current population
-    ???
+    pop(0)._1
   }
 
   // API TO IMPLEMENT IN CONCREATE POPULATION
