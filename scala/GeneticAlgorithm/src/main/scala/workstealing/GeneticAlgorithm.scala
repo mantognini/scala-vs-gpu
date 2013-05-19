@@ -144,7 +144,12 @@ object EquationMaximizer extends Population[(Double, Double)] {
     Math.sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45)
   }
   
-  override protected def crossover(axy: Entity, bxy: Entity): Entity = ???
+  override protected def crossover(axy: Entity, bxy: Entity): Entity = {
+    val (x1, y1) = axy
+    val (x2, y2) = bxy
+    
+    ((x1 + x2) / 2, (y1 + y2) / 2)
+  }
 
 }
 
