@@ -67,7 +67,12 @@ trait Population[Entity] {
       // Create CO new individuals with CrossOver
 
       // Replace the last CO entities before the N last ones (see comment at step 3)
-      ???
+      new ParRange(size - N - CO until size - N, Workstealing.DefaultConfig) foreach { n =>
+        val first = ThreadLocalRandom.current.nextInt(indexBegin, indexEnd)
+        val second = ThreadLocalRandom.current.nextInt(indexBegin, indexEnd)
+        // CrossOver
+        pop.update(n, withFitness(crossover(pop(first)._1, pop(second)._1)))
+      }
 
       // Step 6.
       // -------
