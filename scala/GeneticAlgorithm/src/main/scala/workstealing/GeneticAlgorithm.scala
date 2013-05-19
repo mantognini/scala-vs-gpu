@@ -114,16 +114,16 @@ trait Population[Entity] {
 
   // API TO IMPLEMENT IN CONCREATE POPULATION
 
-  type Real = Double
-  type EntityFitness = (Entity, Real)
-  type Pop = Array[EntityFitness]
+  protected type Real = Double
+  protected type EntityFitness = (Entity, Real)
+  protected type Pop = Array[EntityFitness]
 
-  def generator(): Entity
-  def evaluator(e: Entity): Real
-  def crossover(a: Entity, b: Entity): Entity
-  def mutator(e: Entity): Entity
+  protected def generator(): Entity
+  protected def evaluator(e: Entity): Real
+  protected def crossover(a: Entity, b: Entity): Entity
+  protected def mutator(e: Entity): Entity
 
-  def terminator(pop: Pop): Boolean
+  protected def terminator(pop: Pop): Boolean
 }
 
 object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
