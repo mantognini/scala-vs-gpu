@@ -153,6 +153,11 @@ object EquationMaximizer extends Population[(Double, Double)] {
   
   override protected def mutator(xy: Entity) = xy // TODO implement me (or not)
 
+  private var count = 0
+  override protected def terminator(pop: Pop) = {
+    count += 1
+    count > 1000
+  }
 }
 
 object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
