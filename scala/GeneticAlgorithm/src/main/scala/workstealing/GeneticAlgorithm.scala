@@ -16,14 +16,21 @@ trait Population[Entity] {
     assert(M >= 0 && M < size, "invalid M parameter")
     assert(N >= 0 && CO >= 0 && N + CO == K, "invalid N or CO parameter")
 
+    // Helpers
+    def withFitness(entity: Entity) = (entity, evaluator(entity))
+
     // Step 1 + 2.
     // -----------
     //
     // Generate a population & evaluate it
-    val pop = ???
-
+    var pop = new Pop(size)
+    new ParRange(0 until size, Workstealing.DefaultConfig) foreach {
+      pop.update(_, withFitness(generator))
+    }
     // Now sort it
-    ???
+    pop = pop sortWith { _._2 > _._2 } // use fitness to sort
+    // TODO would ParRange.aggregate with a merge sort be better ? 
+    // TODO or would java.util.Arrays.sort(T[], Comparator<T>) be better ?
 
     var rounds = 0;
 
@@ -89,7 +96,7 @@ trait Population[Entity] {
 
   type Real = Double
   type EntityFitness = (Entity, Real)
-  type Pop = ParArray[EntityFitness]
+  type Pop = Array[EntityFitness]
 
   def generator(): Entity
   def evaluator(e: Entity): Real
