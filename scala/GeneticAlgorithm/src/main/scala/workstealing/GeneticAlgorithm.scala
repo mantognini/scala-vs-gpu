@@ -3,6 +3,8 @@ package workstealing
 import scala.collection.workstealing._
 import scala.collection.workstealing.benchmark._
 
+import java.util.concurrent.{ ThreadLocalRandom }
+
 trait Population[Entity] {
   // PUBLIC API
 
@@ -50,7 +52,14 @@ trait Population[Entity] {
       // Mutate M individuals of the population
 
       // Choose M random individuals from the living ones, that is in range [0, size-K[
-      ???
+      val indexBegin = 0
+      val indexEnd = size - K
+      new ParRange(0 until M, Workstealing.DefaultConfig) foreach { n =>
+        val index = ThreadLocalRandom.current.nextInt(indexBegin, indexEnd)
+        // Hopefully, two index computed in parallel won't be the same.
+        // (If that's the case, we don't care much)
+        pop.update(index, withFitness(generator))
+      }
 
       // Step 5.
       // -------
