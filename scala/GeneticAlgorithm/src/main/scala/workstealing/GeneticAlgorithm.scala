@@ -5,8 +5,10 @@ import scala.collection.workstealing.benchmark._
 
 import java.util.concurrent.{ ThreadLocalRandom }
 
-trait Population[Entity] {
+trait Population[E] {
   // PUBLIC API
+  
+  type Entity = E
 
   def run(size: Int, K: Int, M: Int, N: Int, CO: Int): Entity = {
     // Step 0.
@@ -137,10 +139,12 @@ object EquationMaximizer extends Population[(Double, Double)] {
     ThreadLocalRandom.current.nextDouble(MIN_Y, MAX_Y)
   )
 
-  override protected def evaluator(xy: (Double, Double)) = {
+  override protected def evaluator(xy: Entity) = {
     val (x, y) = xy
     Math.sin(x - 15) / x * (y - 7) * (y - 30) * (y - 50) * (x - 15) * (x - 45)
   }
+  
+  override protected def crossover(axy: Entity, bxy: Entity): Entity = ???
 
 }
 
