@@ -105,7 +105,11 @@ trait Population[Entity] {
     // -------
     //
     // Identify the best individual from the current population
-    pop(0)._1
+    val max = pop(0)._1
+
+    println("Max: " + max)
+
+    max
   }
 
   // API TO IMPLEMENT IN CONCREATE POPULATION
@@ -124,8 +128,14 @@ trait Population[Entity] {
 
 object GeneticAlgorithmBenchmark extends StatisticsBenchmark {
 
+  val size = sys.props("size").toInt
+  val K = sys.props("K").toInt
+  val M = sys.props("M").toInt
+  val N = sys.props("N").toInt
+  val CO = sys.props("CO").toInt
+
   def run() {
-    ???
+    val max = EquationMaximizer.run(size, K, M, N, CO)
   }
 
 }
