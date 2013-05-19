@@ -28,5 +28,5 @@ java $javaopts \
      $workstealingopts \
      -Dsize=$size -DK=$K -DM=$M -DN=$N -DCO=$CO \
      "workstealing.GeneticAlgorithmBenchmark" $runs \
-| tee data.csv
+| tee data.precsv
    
