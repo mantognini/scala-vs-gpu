@@ -150,7 +150,7 @@ public:
             // Create CO new individuals with CrossOver
 
             // Replace the last CO entities before the N last ones (see comment at step 3)
-            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count) {
+            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count, --i) {
                 // Select two random entities from the living ones, that is in range [0, size-K[
                 const unsigned int rangeStart = 0;
                 const unsigned int rangeEnd = settings.size - settings.K - 1;
