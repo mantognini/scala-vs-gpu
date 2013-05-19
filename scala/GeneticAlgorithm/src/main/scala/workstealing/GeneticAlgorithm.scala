@@ -36,10 +36,10 @@ trait Population[E] {
     // TODO would ParRange.aggregate with a merge sort be better ? 
     // TODO or would java.util.Arrays.sort(T[], Comparator<T>) be better ?
 
-    var rounds = 0;
+//    var rounds = 0;
 
     do {
-      rounds += 1
+//      rounds += 1
 
       // Step 3.
       // -------
@@ -101,7 +101,7 @@ trait Population[E] {
       // Goto Step 3 if the population is not stable yet
     } while (!terminator(pop))
 
-    println("#Rounds : " + rounds)
+//    println("#Rounds : " + rounds)
 
     // Step 9.
     // -------
@@ -109,7 +109,7 @@ trait Population[E] {
     // Identify the best individual from the current population
     val max = pop(0)._1
 
-    println("Max: " + max)
+//    println("Max: " + max)
 
     max
   }
