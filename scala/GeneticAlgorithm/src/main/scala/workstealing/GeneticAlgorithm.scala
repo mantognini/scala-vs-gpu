@@ -58,7 +58,7 @@ trait Population[Entity] {
         val index = ThreadLocalRandom.current.nextInt(indexBegin, indexEnd)
         // Hopefully, two index computed in parallel won't be the same.
         // (If that's the case, we don't care much)
-        pop.update(index, withFitness(generator))
+        pop.update(index, withFitness(mutator(pop(index)._1)))
       }
 
       // Step 5.
