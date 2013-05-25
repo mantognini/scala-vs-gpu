@@ -31,6 +31,16 @@ case class CSVReporter(filename: String = "data.csv") extends Reporter {
     }
 }
 
+case class TaskSupport(val level: Int) {
+  val fjOpt = 
+    if (level > 0) 
+    	Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(level)))
+    else
+    	None
+  
+  override def toString() = level.toString
+}
+
 
 object MonteCarlo extends PerformanceTest {
     /* configuration */
@@ -53,7 +63,7 @@ object MonteCarlo extends PerformanceTest {
 
     lazy val persistor = Persistor.None
     
-    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Boolean, innerpar: Boolean): Double = {
+    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Option[collection.parallel.ForkJoinTaskSupport]): Double = {
     	// Config
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
@@ -61,14 +71,19 @@ object MonteCarlo extends PerformanceTest {
           val genx = new Random()
           val geny = new Random()
           (genx,geny)
-        }
-        
-        val gens = if (outerpar) gens1.par else gens1
+	    }
+	
+	    val gens /*: GenSeq[(Random, Random)] with Immutable */ = outerpar match {
+	      case None => gens1
+	      case Some(fj) =>
+	        val p = gens1.par
+	        p.tasksupport = fj
+	        p
+	    }
         
         val insideCount = gens.aggregate(0.0)({
 		  (acc, genxy) => {
-		    val range1 = 0 until iterCount
-		    val range = if (innerpar) range1.par else range1
+		    val range = 0 until iterCount
 		    
 		    val inside = range.count {
 		      i =>
@@ -86,29 +101,30 @@ object MonteCarlo extends PerformanceTest {
         // Compute the average
         val π = 4.0 * insideCount / pointCount
 
-//        println("π is ~" + π + " for (" + pointCount + ", " + parallelismLevel + ", " + par + ") \t" + 
-//            iterCount + " * " + parallelismLevel + " = " + (iterCount * parallelismLevel) + " VS " + pointCount)
-
         π
     }
     
-    // TODO config pc.tasksupport
-    
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
-    val innerpars = Gen.enumeration("inner parallelism")(true, false)
-    val outerpars = Gen.enumeration("outer parallelism")(true, false)
-    
-    val params = for (count <- counts;
-      parallelism <- parallelisms;
-      innerpar <- innerpars;
-      outerpar <- outerpars) yield {
-    	(count, parallelism, outerpar, innerpar)
+	val outerpars = Gen.enumeration("outer parallelism")(
+	    TaskSupport(0),
+	    TaskSupport(2),
+	    TaskSupport(4),
+	    TaskSupport(6),
+	    TaskSupport(8)
+	)
+
+    val params = for {
+      count <- counts
+      parallelism <- parallelisms
+      outerpar <- outerpars
+    } yield {
+      (count, parallelism, outerpar)
     }
 
     performance of "montecarlo" in {
-        using(params) in { case (pointCount, parallelismLevel, outerpar, innerpar) => 
-          	computeRatioParallel(pointCount, parallelismLevel, outerpar, innerpar) 
+        using(params) in { case (pointCount, parallelismLevel, outerpar) => 
+          	computeRatioParallel(pointCount, parallelismLevel, outerpar.fjOpt) 
         }
     }
 }

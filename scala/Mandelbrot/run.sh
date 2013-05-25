@@ -41,5 +41,5 @@ java $javaopts \
      -cp "$HOME/.sbt/boot/scala-2.10.1/lib/scala-library.jar":"$EXTLIBS/workstealing_2.10-0.1.jar":"`dirname $0`/target/scala-2.10/classes/" \
      $workstealingopts \
      "Mandelbrot" \
-| tee data.precsv
+| tee data.csv
    
