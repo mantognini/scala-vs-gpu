@@ -31,6 +31,16 @@ case class CSVReporter(filename: String = "data.csv") extends Reporter {
     }
 }
 
+case class TaskSupport(val level: Int) {
+  val fjOpt = 
+    if (level > 0) 
+    	Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(level)))
+    else
+    	None
+  
+  override def toString() = level.toString
+}
+
 
 object MonteCarlo extends PerformanceTest {
     /* configuration */
@@ -97,12 +107,13 @@ object MonteCarlo extends PerformanceTest {
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
 	val outerpars = Gen.enumeration("outer parallelism")(
-	    None,
-	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(2))),
-	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(4))),
-	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(8)))
+	    TaskSupport(0),
+	    TaskSupport(2),
+	    TaskSupport(4),
+	    TaskSupport(6),
+	    TaskSupport(8)
 	)
-    
+
     val params = for {
       count <- counts
       parallelism <- parallelisms
@@ -113,7 +124,7 @@ object MonteCarlo extends PerformanceTest {
 
     performance of "montecarlo" in {
         using(params) in { case (pointCount, parallelismLevel, outerpar) => 
-          	computeRatioParallel(pointCount, parallelismLevel, outerpar) 
+          	computeRatioParallel(pointCount, parallelismLevel, outerpar.fjOpt) 
         }
     }
 }
