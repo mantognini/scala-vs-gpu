@@ -53,7 +53,7 @@ object MonteCarlo extends PerformanceTest {
 
     lazy val persistor = Persistor.None
     
-    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Boolean): Double = {
+    def computeRatioParallel(pointCount: Int, parallelismLevel: Int, outerpar: Option[collection.parallel.ForkJoinTaskSupport]): Double = {
     	// Config
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
@@ -61,9 +61,15 @@ object MonteCarlo extends PerformanceTest {
           val genx = new Random()
           val geny = new Random()
           (genx,geny)
-        }
-        
-        val gens = if (outerpar) gens1.par else gens1
+	    }
+	
+	    val gens /*: GenSeq[(Random, Random)] with Immutable */ = outerpar match {
+	      case None => gens1
+	      case Some(fj) =>
+	        val p = gens1.par
+	        p.tasksupport = fj
+	        p
+	    }
         
         val insideCount = gens.aggregate(0.0)({
 		  (acc, genxy) => {
@@ -88,11 +94,14 @@ object MonteCarlo extends PerformanceTest {
         π
     }
     
-    // TODO config pc.tasksupport
-    
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
-    val outerpars = Gen.enumeration("outer parallelism")(true, false)
+	val outerpars = Gen.enumeration("outer parallelism")(
+	    None,
+	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(2))),
+	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(4))),
+	    Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(8)))
+	)
     
     val params = for {
       count <- counts
