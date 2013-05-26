@@ -6,6 +6,7 @@ import scala.collection.{ GenSeq }
 import scala.reflect.{ ClassTag }
 import java.io.{ BufferedWriter, FileWriter, File }
 import java.lang.{ Runtime }
+import scala.collection.workstealing.{ ParRange => WorkstealingParRange, Workstealing }
 
 case class CSVReporter(filename: String = "data.csv") extends Reporter {
     val file = new File(filename)
@@ -104,6 +105,38 @@ object MonteCarlo extends PerformanceTest {
         π
     }
     
+    def computeRatioParallelWorkstealing(pointCount: Int, parallelismLevel: Int): Double = {
+    	// Config
+        val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
+        
+        val range = new WorkstealingParRange(0 until parallelismLevel, Workstealing.DefaultConfig)
+
+        val genxys = Array.fill(parallelismLevel) { (new Random, new Random) }
+        
+        val insideCount = range.aggregate {0} {
+		  _ + _
+		} {
+          case (acc, idx) =>
+		    val range = 0 until iterCount
+		    val (genx, geny) = genxys(idx)
+		    
+		    val inside = range.count {
+		      i =>
+		        val x = genx.nextDouble
+		        val y = geny.nextDouble
+		        
+		        x * x + y * y <= 1.0
+		    }
+		    
+		    acc + inside
+		}
+        
+        // Compute the average
+        val π = 4.0 * insideCount.toDouble / pointCount
+        
+        π
+    }
+    
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
 	val outerpars = Gen.enumeration("outer parallelism")(
@@ -126,6 +159,20 @@ object MonteCarlo extends PerformanceTest {
         using(params) in { case (pointCount, parallelismLevel, outerpar) => 
           	computeRatioParallel(pointCount, parallelismLevel, outerpar.fjOpt) 
         }
+    }
+    
+    // New par cols
+    val wsparams = for {
+      count <- counts
+      parallelism <- parallelisms
+    } yield {
+      (count, parallelism)
+    }
+    
+    performance of "wsmc" in {
+    	using(wsparams) in { case (pointCount, parallelismLevel) =>
+        	computeRatioParallelWorkstealing(pointCount, parallelismLevel)
+    	}
     }
 }
 
