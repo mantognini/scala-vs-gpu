@@ -5,10 +5,6 @@
 #include <thrust/random.h>
 #include <thrust/generate.h>
 #include <thrust/sort.h>
-#include <thrust/extrema.h>
-#include <thrust/iterator/zip_iterator.h>
-#include <thrust/tuple.h>
-#include <thrust/count.h>
 
 typedef float Real;
 
@@ -18,38 +14,13 @@ bool isClose(Real value, Real target, Real flex)
     return (1 - flex) * target <= value && value <= (1 + flex) * target;
 }
 
-__host__ __device__
-Real clamp(Real value, Real min, Real max)
-{
-    const Real diff = max - min;
-    while (value < min) {
-        value += diff;
-    }
-
-    while (value > max) {
-        value -= diff;
-    }
-
-    return value;
-}
-
-template <typename T, typename U>
-struct SumPair {
-    typedef typename thrust::pair<T, U> Pair;
-
-    SumPair() {
-    }
-
-    __host__ __device__
-    Pair operator()(Pair const& as, Pair const& bs) const {
-        return Pair(as.first + bs.first, as.second + bs.second);
-    }
-};
-
 struct Settings {
-    Settings(unsigned int size, unsigned int K)
+    Settings(unsigned int size, unsigned int K, unsigned int M, unsigned int N, unsigned int CO)
         : size(size)
-        , K(K) {
+        , K(K)
+        , M(M)
+        , N(N)
+        , CO(CO) {
         if (!isValid()) {
             throw new std::domain_error("Invalid settings");
         }
@@ -57,10 +28,23 @@ struct Settings {
 
     const unsigned int size; ///< population size
     const unsigned int K; ///< number of killed per generation
+    const unsigned int M; ///< number of mutated per generation
+    const unsigned int N; ///< number of new individuals (random) per generation
+    const unsigned int CO; ///< number of new individuals (cross over) per generation
 
     /// Make sure the settings are valid
     bool isValid() const {
-        return K < size;
+        // K, M < size
+        if (K >= size || M >= size) {
+            return false;
+        }
+
+        // N + CO = K
+        if (N + CO != K) {
+            return false;
+        }
+
+        return true;
     }
 };
 
@@ -94,17 +78,10 @@ public:
      */
     Population(Settings settings)
         : settings(settings) {
-        std::srand(std::time(0));
     }
 
     /// Apply the genetic algorithm until the population stabilise and return the best entity
     Params run() {
-        // Use a counter for random number so that the random number are really random !
-        thrust::counting_iterator<std::size_t> randomCount(0); // (for generator only)
-
-        // And init the random generator of generator and mutator
-        generator.setSeed(rand());
-        mutator.setSeed(rand());
 
         // Step 1 + 2.
         // -----------
@@ -112,62 +89,83 @@ public:
         // Generate a population & evaluate it
         EntityPopDevice epopd(settings.size);
         FitnessPopDevice fpopd(settings.size);
-        thrust::transform(randomCount, randomCount + settings.size, epopd.begin(), generator);
-        randomCount += settings.size;
+        thrust::generate(epopd.begin(), epopd.end(), generator);
         // Evaluate it
         thrust::transform(epopd.begin(), epopd.end(), fpopd.begin(), evaluator);
         // Now sort it
         thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
+
+        // Copy data back to host
+        EntityPopHost epoph = epopd;
+        FitnessPopHost fpoph = fpopd;
+
+        // Random generators
+        thrust::default_random_engine rng;
 
         unsigned int rounds = 0;
 
         do {
             ++rounds;
 
-            // Step 3 + 4
-            // ----------
+            // Step 3.
+            // -------
             //
-            // Remove the worse K individuals & generate K new individuals randomly
+            // Remove the worse K individuals
 
-            // Replace the last N entities
-            thrust::transform(randomCount, randomCount + settings.K, epopd.end() - settings.K - 1, generator);
-            randomCount += settings.K;
-            // Evaluate tehm
-            thrust::transform(
-                epopd.end() - settings.K - 1, epopd.end(), // input
-                fpopd.begin()  - settings.K - 1,           // ouput
-                evaluator                                  // mapper
-            );
-            thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
+            // Skipped -> replace those entities with step 5 & 6
+
+
+            // Step 4.
+            // -------
+            //
+            // Mutate M individuals of the population
+
+            // Choose M random individuals from the living ones, that is in range [0, size-K[
+
+            for (unsigned int count = 0; count < settings.M; ++count) {
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
+                const unsigned int index = uniform(rng);
+
+                // mutate the entity and recompute its fitness
+                epoph[index] = mutator(epoph[index]);
+                fpoph[index] = evaluator(epoph[index]);
+            }
+
 
             // Step 5.
             // -------
             //
-            // Mutate some individuals of the population
+            // Create CO new individuals with CrossOver
 
-            // Use prob of mutation instead of fixed settings (if close to max, then probably not mutated)
-            mutator.maxfitness = fpopd.front();
-            mutator.best = epopd.front();
-            thrust::transform_if(
-                thrust::make_zip_iterator(                  // data input start
-                    thrust::make_tuple(
-                        epopd.begin(),                              // actual data
-                        thrust::counting_iterator<std::size_t>(0)   // random 'index'
-                    )
-                ),
-                thrust::make_zip_iterator(                  // data input end
-                    thrust::make_tuple(
-                        epopd.end(),
-                        thrust::counting_iterator<std::size_t>(epopd.size())
-                    )
-                ),
-                fpopd.begin(),                  // controller input
-                epopd.begin(),                  // data output (in-place)
-                mutator,                        // mapper             [ operator(Params) ]
-                mutator                         // controller         [ operator(Real)   ]
-            );
+            // Replace the last CO entities before the N last ones (see comment at step 3)
+            for (unsigned int i = settings.size - settings.N - 1, count = 0; count < settings.CO; ++count) {
+                // Select two random entities from the living ones, that is in range [0, size-K[
+                const unsigned int rangeStart = 0;
+                const unsigned int rangeEnd = settings.size - settings.K - 1;
+                thrust::uniform_int_distribution<unsigned int> uniform(rangeStart, rangeEnd);
+                const unsigned int first = uniform(rng);
+                const unsigned int second = uniform(rng);
+
+                epoph[i] = crossover(epoph[first], epoph[second]);
+                fpoph[i] = evaluator(epoph[i]);
+            }
+
 
             // Step 6.
+            // -------
+            //
+            // Generate N new individuals randomly
+
+            // Replace the last N entities (see comment at step 3)
+            for (unsigned int i = settings.size - 1, count = 0; count < settings.N; ++count, --i) {
+                epoph[i] = generator();
+                fpoph[i] = evaluator(epoph[i]);
+            }
+
+
+            // Step 7.
             // -------
             //
             // Evaluate the current population
@@ -175,25 +173,33 @@ public:
             // The evaluation of new entities was already done in step 3 to 6
             // So we only sort the population
 
+            // Copy data to device
+            epopd = epoph;
+            fpopd = fpoph;
+
             // Sort the data
             thrust::sort_by_key(fpopd.begin(), fpopd.end(), epopd.begin());
 
+            // Copy data back to host
+            epoph = epopd;
+            fpoph = fpopd;
 
-            // Step 7.
+
+            // Step 8.
             // -------
             //
             // Goto Step 3 if the population is not stable yet
 
-        } while (!terminator(epopd) && rounds < 10000);
+        } while (!terminator(epoph));
 
         std::cout << "#rounds = " << rounds << std::endl;
 
-        // Step 8.
+        // Step 9.
         // -------
         //
         // Identify the best individual from the current population
 
-        return epopd.front(); // the population is already sorted;
+        return epoph.front(); // the population is already sorted;
     }
 
 // private:
@@ -210,13 +216,8 @@ public:
             , distY(MIN_Y, MAX_Y) {
         }
 
-        void setSeed(unsigned int seed) {
-            rng.seed(seed);
-        }
-
         __host__ __device__
-        Params operator()(std::size_t n) { // The n is used to drop some random numbers
-            rng.discard(2 * n); // since we take two random numbers
+        Params operator()() {
             return Params(distX(rng), distY(rng));
         }
 
@@ -236,74 +237,53 @@ public:
         }
     } evaluator;
 
+    // CrossOver; takes the average of the two entities
+    __host__ __device__
+    Params crossover(Params const& as, Params const& bs) {
+        Real ax = as.first,
+             ay = as.second,
+             bx = bs.first,
+             by = bs.second;
+
+        return Params((ax + bx) / Real(2), (ay + by) / Real(2));
+    }
+
 
     // Mutator; takes a normal distribution to shift the current value
-    struct Mutator {
-        Mutator()
-            : rng(std::rand()) {
-        }
+    __host__ __device__
+    Params mutator(Params const& ps) {
+        // TODO implement me !
+        return ps;
+    }
 
-        // Mutate action
-        __host__ __device__
-        Params operator()(thrust::tuple<Params, std::size_t> const& tuple) {
-            Params ps = thrust::get<0>(tuple);
-            const std::size_t n = thrust::get<1>(tuple);
-            rng.discard(2 * n);
-            thrust::normal_distribution<Real> distX(best.first, (MAX_X - MIN_X) / 8);
-            thrust::normal_distribution<Real> distY(best.second, (MAX_Y - MIN_Y) / 8);
-            ps.first = clamp(ps.first + distX(rng), MIN_X, MAX_X);
-            ps.second = clamp(ps.second + distY(rng), MIN_Y, MAX_Y);
-            return ps;
-        }
-
-        // Mutate decider
-        __host__ __device__
-        bool operator()(Real fitness) {
-            return fitness / maxfitness < 0.5;
-        }
-
-        void setSeed(unsigned int seed) {
-            rng.seed(seed);
-        }
-
-        Real maxfitness; // must be updated before calling mutate decider !
-        Params best;
-
-    private:
-        // Random generators
-        thrust::default_random_engine rng;
-    } mutator;
-
-    struct IsOut {
-        IsOut(Real avgX, Real avgY, Real epsilon)
-            : avgX(avgX)
-            , avgY(avgY)
-            , epsilon(epsilon) {
-        }
-
-        __host__ __device__
-        bool operator()(Params const& ps) const {
-            return !isClose(ps.first, avgX, epsilon) || !isClose(ps.second, avgY, epsilon);
-        }
-
-        const Real avgX, avgY, epsilon;
-    };
 
     // Terminator; stop evolution when population has (relatively) converged
-    bool terminator(EntityPopDevice const& pop) {
+    bool terminator(EntityPopHost const& pop) {
         // Compute average on x and y axes
-        const SumPair<Real, Real> reducer;
-        Params sum = thrust::reduce(pop.begin(), pop.end(), Params(0, 0), reducer);
-        Real avgX = sum.first / pop.size();
-        Real avgY = sum.second / pop.size();
+        Real avgX(0), avgY(0);
+        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
+            Real x = (*itps).first;
+            Real y = (*itps).second;
 
-        // Stop when P % of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
-        const Real P = 75;
-        const std::size_t maxOuts = pop.size() * (Real(1) - P / Real(100));
-        const Real EPSILON = 0.05;
+            avgX += x;
+            avgY += y;
+        }
+        avgX /= pop.size();
+        avgY /= pop.size();
 
-        const IsOut predicate(avgX, avgY, EPSILON);
-        const std::size_t outs = thrust::count_if(pop.begin(), pop.end(), predicate);
+        // Stop when 75% of the population is in the range [(1 - ε) * µ, (1 + ε) * µ]
+        const unsigned int maxOuts = pop.size() * 0.25;
+        const Real EPSILON = 0.02;
+
+        unsigned int outs = 0;
+        for (EntityPopHost::const_iterator itps = pop.begin(); itps != pop.end(); ++itps) {
+            Real x = (*itps).first;
+            Real y = (*itps).second;
+
+            if (!isClose(x, avgX, EPSILON) || !isClose(y, avgY, EPSILON)) {
+                ++outs;
+            }
+        }
 
         return outs <= maxOuts;
     }
@@ -340,7 +320,7 @@ std::ostream& operator<<(std::ostream& out, Population::Params const& ps)
 int main(int, char const**)
 {
     // Settings
-    const Settings settings(1000, 100);
+    const Settings settings(1000, 100, 50, 50, 50);
 
     // Create the population
     Population pop(settings);
