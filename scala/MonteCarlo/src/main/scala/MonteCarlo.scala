@@ -68,28 +68,25 @@ object MonteCarlo extends PerformanceTest {
     	// Config
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
-        val gens1 = for (i <- 0 until parallelismLevel) yield {
-          val genx = new Random()
-          val geny = new Random()
-          (genx,geny)
-	    }
+        val range1 = 0 until parallelismLevel
 	
-	    val gens /*: GenSeq[(Random, Random)] with Immutable */ = outerpar match {
-	      case None => gens1
+	    val range = outerpar match {
+	      case None => range1
 	      case Some(fj) =>
-	        val p = gens1.par
+	        val p = range1.par
 	        p.tasksupport = fj
 	        p
 	    }
         
-        val insideCount = gens.aggregate(0.0)({
+        val insideCount = range.aggregate(0.0)({
 		  (acc, genxy) => {
 		    val range = 0 until iterCount
+		    val (genx, geny) = (new Random, new Random)
 		    
 		    val inside = range.count {
 		      i =>
-		        val x = genxy._1.nextDouble
-		        val y = genxy._2.nextDouble
+		        val x = genx.nextDouble
+		        val y = geny.nextDouble
 		        
 		        x * x + y * y <= 1.0
 		    }
@@ -110,15 +107,13 @@ object MonteCarlo extends PerformanceTest {
         val iterCount = pointCount / Math.min(parallelismLevel, pointCount)
         
         val range = new WorkstealingParRange(0 until parallelismLevel, Workstealing.DefaultConfig)
-
-        val genxys = Array.fill(parallelismLevel) { (new Random, new Random) }
         
         val insideCount = range.aggregate {0} {
 		  _ + _
 		} {
           case (acc, idx) =>
 		    val range = 0 until iterCount
-		    val (genx, geny) = genxys(idx)
+		    val (genx, geny) = (new Random, new Random)
 		    
 		    val inside = range.count {
 		      i =>
