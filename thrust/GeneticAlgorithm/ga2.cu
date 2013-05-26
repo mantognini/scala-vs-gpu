@@ -10,6 +10,8 @@
 #include <thrust/tuple.h>
 #include <thrust/count.h>
 
+#warning THIS IMPLEMENTATION IS IMPRECISE
+
 typedef float Real;
 
 __host__ __device__
