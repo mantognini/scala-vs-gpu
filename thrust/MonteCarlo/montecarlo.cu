@@ -82,7 +82,7 @@ struct MonteCarlo
 
     std::string csvdescription() const {
         std::stringstream ss;
-        ss << pointCount;
+        ss << "Thrust#1," << pointCount;
         return ss.str();
     }
 
@@ -98,16 +98,10 @@ int main(int argc, char** argv)
     // Warmup !
     stats<MonteCarlo, Real>(MonteCarlo(128));
 
-    // Benchmark with "low" count (from 2^7 to 2^15)
-    for (std::size_t c = 128; c <= 32768; c *= 2) {
+    // Benchmark count from 2^7 to 2^22
+    for (std::size_t c = 128; c <= 4194304; c *= 2) {
         // Do 100 measurements for low point count
         stats<MonteCarlo, Real>(MonteCarlo(c), 100);
-    }
-
-    // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
-    for (std::size_t c = 65536; c <= 4194304; c += 524288) {
-        // Do 10 measurements for each high point count
-        stats<MonteCarlo, Real>(MonteCarlo(c), 10);
     }
 
     return 0;

@@ -74,7 +74,7 @@ struct MonteCarlo : public thrust::unary_function<std::size_t, Real>
 
     std::string csvdescription() const {
         std::stringstream ss;
-        ss << pointCount << "," << N;
+        ss << "Thrust#2," << pointCount << "," << N;
         return ss.str();
     }
 
@@ -90,16 +90,10 @@ int main(void)
     // Warmup !
     stats<MonteCarlo, double>(MonteCarlo(128, 1));
 
-    // Benchmark with "low" count (from 2^7 to 2^15)
-    for (std::size_t c = 128; c <= 32768; c *= 2) {
-        // Do 100 measurements for low point count
-        for (std::size_t N = 1; N <= c && N <= 8192; N *= 2) stats<MonteCarlo, Real>(MonteCarlo(c, N), 100);
-    }
-
-    // Benchmark with "high" count (from 2^16 to 2^22 in ~8 steps)
-    for (std::size_t c = 65536; c <= 4194304; c += 524288) {
-        // Do 10 measurements for each high point count
-        for (std::size_t N = 1; N <= c && N <= 8192; N *= 8) stats<MonteCarlo, Real>(MonteCarlo(c, N), 10);
+    // Benchmark count from 2^7 to 2^22
+    for (std::size_t c = 128; c <= 4194304; c *= 2) {
+        // Do 100 measurements
+        for (std::size_t N = 1; N <= c && N <= 32768; N *= 2) stats<MonteCarlo, Real>(MonteCarlo(c, N), 100);
     }
 
     return 0;
