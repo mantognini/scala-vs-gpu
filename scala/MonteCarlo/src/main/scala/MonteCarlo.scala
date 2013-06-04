@@ -150,7 +150,7 @@ object MonteCarlo extends PerformanceTest {
       (count, parallelism, outerpar)
     }
 
-    performance of "montecarlo" in {
+    performance of "Scala#1" in {
         using(params) in { case (pointCount, parallelismLevel, outerpar) => 
           	computeRatioParallel(pointCount, parallelismLevel, outerpar.fjOpt) 
         }
@@ -164,7 +164,7 @@ object MonteCarlo extends PerformanceTest {
       (count, parallelism)
     }
     
-    performance of "wsmc" in {
+    performance of "Scala#2" in {
     	using(wsparams) in { case (pointCount, parallelismLevel) =>
         	computeRatioParallelWorkstealing(pointCount, parallelismLevel)
     	}
