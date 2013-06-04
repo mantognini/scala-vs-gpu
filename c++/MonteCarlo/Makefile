@@ -4,7 +4,7 @@ bindir:
 	mkdir -p bin/
 
 mc1: bindir
-	clang++ -O3 montecarlo.cpp -o bin/montecarlo -framework sfml-system -std=c++11 -stdlib=libc++ -I ../../common/include
+	clang++ -O3 montecarlo1.cpp -o bin/montecarlo1 -framework sfml-system -std=c++11 -stdlib=libc++ -I ../../common/include
 
 
 mc2: bindir

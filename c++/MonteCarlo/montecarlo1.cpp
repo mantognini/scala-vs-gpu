@@ -11,7 +11,7 @@
 typedef double Real;
 
 namespace mc {
-
+    
     typedef std::pair<Real, Real> Point;
     typedef std::uniform_real_distribution<Real> RealDistribution;
     typedef std::default_random_engine RandomEngine;
@@ -34,17 +34,16 @@ namespace mc {
             return p.first * p.first + p.second * p.second <= 1;
         };
 
-        // Create some random point in the unit square
-        std::vector<Point> points(pointCount);
-        std::generate(points.begin(), points.end(), randomPoint);
+        Real sum = 0.0;
+        // Create some random point in the unit square and see if they are in the circle
+        for (std::size_t i = 0; i < pointCount; ++i) {
+            if (isInside(randomPoint())) {
+                ++sum;
+            }
+        }
+        const Real pi = sum / pointCount * 4;
 
-        // Count point inside the circle
-        const auto pointInCircleCount = std::count_if(points.begin(), points.end(), isInside);
-
-        // π/4 = .785398163
-        const Real ratio = static_cast<Real>(pointInCircleCount) / static_cast<Real>(pointCount);
-
-        return ratio * 4.0;
+        return pi;
     }
 }
 
