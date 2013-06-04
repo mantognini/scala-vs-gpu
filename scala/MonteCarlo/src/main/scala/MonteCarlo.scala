@@ -34,7 +34,7 @@ case class CSVReporter(filename: String = "data.csv") extends Reporter {
 
 case class TaskSupport(val level: Int) {
   val fjOpt = 
-    if (level > 0) 
+    if (level > 1) 
     	Some(new collection.parallel.ForkJoinTaskSupport(new scala.concurrent.forkjoin.ForkJoinPool(level)))
     else
     	None
@@ -135,7 +135,7 @@ object MonteCarlo extends PerformanceTest {
     val counts = Gen.exponential("point count")(128, 4194304, 2) // From 2^7 to 2^22
     val parallelisms = Gen.exponential("parallelism level")(1, 1024, 2)
 	val outerpars = Gen.enumeration("outer parallelism")(
-	    TaskSupport(0),
+	    TaskSupport(1), // sequential
 	    TaskSupport(2),
 	    TaskSupport(4),
 	    TaskSupport(6),
