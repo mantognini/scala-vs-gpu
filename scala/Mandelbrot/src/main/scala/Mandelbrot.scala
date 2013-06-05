@@ -135,8 +135,8 @@ object Mandelbrot {
           maxIteration <- iterations
           range <- ranges
         }{
-            stats(side, maxIteration, range, "normal", computeNormal)
-            stats(side, maxIteration, range, "newpc", computeNewPC)
+            stats(side, maxIteration, range, "Scala#1", computeNormal)
+            stats(side, maxIteration, range, "Scala#2", computeNewPC)
         }
     }
 }
