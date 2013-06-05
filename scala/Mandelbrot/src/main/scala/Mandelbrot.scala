@@ -37,7 +37,7 @@ object Mandelbrot {
 
     def main(args: Array[String]): Unit = {
 
-        val sides = List( 100, 400, 1200, 2000, 4000, 10000 )
+        val sides = List( 100, 200, 400, 800, 1200, 1600, 2000, 4000, 10000 )
         val iterations = List( 1, 30, 250, 1000, 2000, 8000 )
         val ranges = List(
             ComplexRange( -1.72, 1.2, 1.0, -1.2 ),
